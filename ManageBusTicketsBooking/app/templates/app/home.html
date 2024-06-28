@@ -1,0 +1,301 @@
+{% extends "app/base.html" %}
+{% load humanize %}
+{% load static %}
+{% block title %}
+    <title>Home page</title>
+{% endblock title %}
+{% block banner_slider %}
+<div id="carouselExampleDark" class="carousel carousel-dark slide">
+    <div class="carousel-indicators">
+      <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+      <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="1" aria-label="Slide 2"></button>
+      <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="2" aria-label="Slide 3"></button>
+      <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="3" aria-label="Slide 4"></button>
+    </div>
+    <div class="carousel-inner">
+      <div class="carousel-item active" data-bs-interval="2000">
+        <img src="{% static 'app/images/slider.jpg' %}" class="d-block w-100" alt="..." height='400px'>
+        <div class="carousel-caption d-none d-md-block"  style="color: white; font-size: 20px; background-color: rgba(0, 0, 0, 0.5);"> 
+            <h3>Book Bus Tickets Easy and Fast</h3>
+            <p>Book bus tickets online in just a few clicks and enjoy travel comfort.</p>
+        </div>
+      </div>
+      <div class="carousel-item" data-bs-interval="2000">
+        <img src="{% static 'app/images/slider1.webp' %}" class="d-block w-100" alt="..." height='400px'>
+        <div class="carousel-caption d-none d-md-block" style="color: white; font-size: 20px; background-color: rgba(0, 0, 0, 0.5);">
+            <p>Book bus tickets now to explore every destination conveniently. Save time, avoid the hassle of queuing. The exciting journey starts here!</p>
+        </div>
+      </div>
+      <div class="carousel-item" data-bs-interval="2000">
+        <img src="{% static 'app/images/slider2.webp' %} " class="d-block w-100" alt="..." height='400px'>
+        <div class="carousel-caption d-none d-md-block" style="color: white; font-size: 20px; background-color: rgba(0, 0, 0, 0.5);">
+          <p>Just a few clicks to book bus tickets—simple, fast, and convenient. Secure your seat and enjoy a smooth trip without worries!</p>
+        </div>
+      </div>
+      <div class="carousel-item" data-bs-interval="2000">
+        <img src="{% static 'app/images/slider3.webp' %} " class="d-block w-100 " alt="..."height='400px' >
+        <div class="carousel-caption d-none d-md-block" style="color: white; font-size: 20px; background-color: rgba(0, 0, 0, 0.5);">
+            <p>Experience the fast and convenient bus ticket booking service. Ensure a comfortable seat on every journey, with just a few simple steps on our website.</p>
+        </div>
+      </div>
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleDark" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Next</span>
+    </button>
+  </div>
+  
+{% endblock banner_slider %}
+
+{% block main-content %}
+    {% comment %} <h1>Wellcome my home page</h1> {% endcomment %}
+    {% if error_message %}
+      <div class="alert alert-danger">
+        {{ error_message }}
+      </div>
+    {% endif %}
+
+    <div class="container pt-3">
+      <form method="post" action="{% url 'search' %}">
+        {% csrf_token %}
+        <div class="row justify-content-center">
+          <div class="col-md-8 col-sm-12">
+            <div class="d-flex align-items-center mb-3">
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="journeyType" id="oneWay" value="false" checked>
+                <label class="form-check-label" for="oneWay">One-way</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="journeyType" id="roundTrip" value="true">
+                <label class="form-check-label" for="roundTrip">Round trip</label>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4 col-sm-12">
+            <a href="#" class="text-orange">Instructions for buying tickets</a>
+          </div>
+        </div>
+        <div class="row justify-content-center">
+          <div class="col-md-2">
+            <label for="departure">Start point</label>
+            <input type="text" class="form-control" id="departure" name="departure" placeholder="Enter start point">
+          </div>
+          <div class="col-md-1">
+            <img class="switch-location mt-4 mb-2" src="{% static 'app/images/switch.jpg' %}" alt="Switch Location">
+          </div>
+          <div class="col-md-2">
+            <label for="destination">End point</label>
+            <input type="text" class="form-control" id="destination" name="destination" placeholder="Enter end point">
+          </div>
+          <div class="col-md-2">
+            <label for="departureDate">Date of departure</label>
+            <input type="date" class="form-control" id="departureDate" name="departureDate">
+          </div>
+          <div class="returnDate col-md-2" hidden>
+            <label for="returnDate">Return date</label>
+            <input type="date" class="form-control" id="returnDate" name="returnDate">
+          </div>
+          <div class="col-md-2">
+            <label for="numberOfTickets">Amount of tickets</label>
+            <select class="form-select" id="numberOfTickets" name="numberOfTickets">
+              <option selected>1</option>
+              <option>2</option>
+              <option>3</option>
+              <option>4</option>
+              <option>5</option>
+            </select>
+          </div>
+        </div>
+        <div class="d-flex justify-content-center mt-4">
+          <button class="button-63" role="button">Find trips</button>
+        </div>
+      </form>
+    </div>
+    
+      
+
+
+  <div class="row py-3 text-center" style="width:100%">
+    {% comment %} <h2>user</h2> {% endcomment %}
+    {% comment %} <h2>Pass: {{request.user.password}}</h2> {% endcomment %}
+    {% comment %} <h2>user_not_login: {{user_not_login}}</h2>
+    <h2>user_login: {{user_login}}</h2> {% endcomment %}
+    {% comment %} <h2>hcm_trips: {{hcm_trips}}</h2>
+    <h2>all_trips: {{all_trips}}</h2>
+
+    <h2>all_buses: {{all_buses}}</h2> {% endcomment %}
+
+    {% comment %} <p>request.user:{{request.user}}</p> {% endcomment %}
+    {% comment %} <h2>{{ request.user.username }}</h2> {% endcomment %}
+    {% comment %} <p>First Name: {{ request.user.first_name }}</p> {% endcomment %}
+    {% comment %} <p>Last Name: {{ request.user.last_name }}</p> {% endcomment %}
+    {% comment %} <p>Email: {{ request.user.email }}</p> {% endcomment %}
+    {% comment %} <p>Google: {{ request.google_token }}</p>
+    <p>token_id: {{ request.token_id }}</p>
+    <p>Google: {{ request.google_token }}</p>
+    <p>Profile: {{ profile.getEmail }}</p> {% endcomment %}
+
+
+  </div>
+  {% comment %} <div id="profile-info" class="text-center h6 fw-bold mb-5 mx-1 mx-md-4 mt-4"></div> {% endcomment %}
+
+      <div class="row py-3 text-center" style="width:100%">
+        <h2>Các Tuyến Xe</h2>
+      </div>
+      <div class="row py-3" style="width:100%">
+
+        {% for trip in all_trips %}
+        <div class="col-lg-3 bus-item">  
+            <div class="box-element product">
+                <h6><strong>{{ trip.name }}</strong></h6>
+                <hr>
+                <p><strong>Departure Station:</strong> {{ trip.departure_Station }}</p>
+                <p><strong>Ending Station:</strong> {{ trip.ending_Station }}</p>
+                <p>{{trip.id}}</p>
+                <a class="btn btn-outline-secondary add-btn update-cart" href="{% url 'booking' trip.id %}">Booking</a>
+                <h4 style="display: inline-block; float: right" ><strong>${{trip.price | floatformat:2}}</strong></h4>
+            </div>
+        </div>  
+    
+        {% endfor %}
+      </div> 
+
+
+    <section class="py-6 text-center sm:px-10">
+      <div class="container">
+        <h2 class="text-green">TUYẾN PHỔ BIẾN</h2>
+        <p class="home-title-content">Được khách hàng tin tưởng và lựa chọn</p>
+        <div class="row mt-8 justify-content-between d-flex">
+            <!-- Card 1 -->           
+              <div class="col-lg-4 col-md-4 mb-2">
+                <div class="card">
+                    <img src="{% static 'app/images/tripFromHCM.jpeg' %}" height="200px" class="card-img-top" alt="">
+                    <div class="card-body">
+                        <h5 class="card-title">Tuyến xe từ</h5>
+                        <h3 class="card-text font-weight-bold">Tp Hồ Chí Minh</h3>
+                        {% for trip in hcm_trips %}
+                            <div class="border-bottom mb-4 pb-4">
+                              <a href="{% url 'booking' trip.id %}" class="text-decoration-none text-dark">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-green font-weight-bold">{{ trip.id_Route.endPoint }}</span>
+                                    <span class="text-[15px] font-medium text-black">${{ trip.price }}</span>
+                                </div>
+                                <span class="text-gray">{{ trip.distance }}km - {{ trip.hours }} hours - {{ trip.arrival_Time|date:"Y-m-d" }}</span>
+                              </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+              </div>
+          
+        
+            <!-- Card 2 -->
+
+            <div class="col-lg-4 col-md-4 mb-2">
+              <div class="card">
+                  <img src="{% static  'app/images/tripFromDalat.webp'%}" height="200px" class="card-img-top" alt="">
+                  <div class="card-body">
+                      <h5 class="card-title">Tuyến xe từ</h5>
+                      <h3 class="card-text font-weight-bold">Đà Lạt</h3>
+                      {% for trip in dl_trips %}
+                          <div class="border-bottom mb-4 pb-4">
+                            <a href="{% url 'booking' trip.id %}" class="text-decoration-none text-dark">
+                              <div class="d-flex justify-content-between">
+                                  <span class="text-green font-weight-bold">{{ trip.id_Route.endPoint }}</span>
+                                  <span class="text-[15px] font-medium text-black">${{ trip.price }}</span>
+                              </div>
+                              <span class="text-gray">{{ trip.distance }}km - {{ trip.hours }} hours - {{ trip.arrival_Time|date:"Y-m-d" }}</span>
+                            </a>
+                          </div>
+                      {% endfor %}
+                  </div>
+              </div>
+          </div>
+          
+
+
+            <!-- Card 3 -->
+            
+
+              <div class="col-lg-4 col-md-4 mb-2">
+                <div class="card">
+                    <img src="{% static  'app/images/tripFromVungTau.webp'%}" height="200px" class="card-img-top" alt="">
+                    <div class="card-body">
+                        <h5 class="card-title">Tuyến xe từ</h5>
+                        <h3 class="card-text font-weight-bold">Bà Rịa - Vũng Tàu</h3>
+                        {% for trip in vt_trips %}
+                            <div class="border-bottom mb-4 pb-4">
+                              <a href="{% url 'booking' trip.id %}" class="text-decoration-none text-dark">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-green font-weight-bold">{{ trip.id_Route.endPoint }}</span>
+                                    <span class="text-[15px] font-medium text-black">${{ trip.price }}</span>
+                                </div>
+                                <span class="text-gray">{{ trip.distance }}km - {{ trip.hours }} hours - {{ trip.arrival_Time|date:"Y-m-d" }}</span>
+                              </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+              
+            </div>
+        </div>
+      </div>
+      
+  </section>
+
+
+
+
+
+
+
+
+    <script> 
+      document.addEventListener("DOMContentLoaded", function() {
+        const switchLocation = document.querySelector('.switch-location');
+        const startPointInput = document.getElementById('departure');
+        const endPointInput = document.getElementById('destination');
+    
+        switchLocation.addEventListener('click', function() {
+            const startPointValue = startPointInput.value;
+            startPointInput.value = endPointInput.value;
+            endPointInput.value = startPointValue;
+        });
+    });
+
+
+    document.addEventListener("DOMContentLoaded", function() {
+      const roundTripRadio = document.getElementById('roundTrip');
+      const returnDateDiv = document.querySelector('.returnDate');
+      const oneWayRadio = document.getElementById('oneWay');
+
+      roundTripRadio.addEventListener('change', function() {
+          if (roundTripRadio.checked) {
+              returnDateDiv.removeAttribute('hidden');
+          } else {
+              returnDateDiv.setAttribute('hidden', '');
+          }
+      });
+      oneWayRadio.addEventListener('change', function() {
+        if (oneWayRadio.checked) {
+            returnDateDiv.setAttribute('hidden', '');
+        } else {
+            returnDateDiv.removeAttribute('hidden');
+        }
+    });
+  });
+
+
+  
+  
+
+</script>
+     
+{% endblock main-content %}
+

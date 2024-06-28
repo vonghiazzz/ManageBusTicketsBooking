@@ -1,0 +1,98 @@
+{% extends "app/base.html" %}
+{% load static %}
+
+{% block title %}
+    <title>Profile page</title>
+{% endblock title %}
+
+{% block profile %}
+<div class="container rounded bg-white mt-5 mb-5">
+    <div class="row">
+        <div class="col-md-3 border-right">
+            <div class="d-flex flex-column align-items-center text-center p-3 py-5">
+                {% if user.avatar %}
+                    <img class="rounded-circle mt-5" width="220px" src="{{ user.avatar.url }}" alt="{{ user.username }}">
+                {% else %}
+                    <img class="rounded-circle mt-5" width="150px" src="{% static 'app/images/profile.jpg' %}">
+                {% endif %}
+
+                <span class="font-weight-bold">{{ user_name }}</span>
+                <span class="text-black-50">{{ request.user.email }}</span>
+            </div>
+        </div>
+
+        <div class="col-md-9 border-right">
+            <form method="post" enctype="multipart/form-data" class="p-3 py-5">
+                {% csrf_token %}
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="text-right">Profile Settings</h4>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    {% if messages %}
+                    <ul class="messages">
+                        {% for message in messages %}
+                            <p class="alert alert-{{ message.tags }} text-center">{{ message }}</p>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-6">
+                        <label class="labels">First Name</label>
+                        <input type="text" class="form-control" name="first_name" placeholder="First name" value="{{ user.first_name }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="labels">Last Name</label>
+                        <input type="text" class="form-control" name="last_name" placeholder="Last name" value="{{ user.last_name }}">
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-6">
+                        <label class="labels">User name</label>
+                        <input type="text" class="form-control" name="user_name" placeholder="User name" value="{{ user_name }}">
+                    </div>
+                        <div class="col-md-6">
+                            <label for="avatar">Avatar:</label>
+                            <input type="file" id="avatar" name="avatar">
+                        </div>
+
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <label class="labels">Mobile Number</label>
+                        <input type="text" class="form-control" name="phone_number" placeholder="Enter phone number" {% if request.user.phone_Number %} value="{{ request.user.phone_Number }}" {% endif %}>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="labels">Email</label>
+                        <input type="text" class="form-control" name="email" placeholder="Enter email" {% if request.user.email %} value="{{ request.user.email }}" {% endif %}>
+                    </div>
+                </div>
+                <div class="row mt-3">
+
+                    <div class="row mt-3">
+                    </div>
+                    
+                </div>
+                <div class="mt-5 text-center">
+                    <button class="btn btn-primary profile-button" type="submit">Save Profile</button>
+                </div>
+            </form>
+            <div class="row justify-content-center">
+                <div class="col-auto action-link-wrap">
+                    <a onclick="history.back(-1)" class="btn btn-outline-primary me-2">
+                        <i class="bi bi-arrow-left"></i> Go Back
+                    </a>
+                    <a href="{% url 'home' %}" class="btn btn-primary">
+                        Go to Home Page <i class="bi bi-house"></i>
+                    </a>
+                </div>
+            </div>
+        
+        </div>
+    </div>
+
+</div>
+
+{% endblock profile %}

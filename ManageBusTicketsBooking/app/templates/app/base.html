@@ -1,0 +1,356 @@
+{%load static%}
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        {% block title %} <title></title>{% endblock title %}
+        <link rel="icon" href="{% static '/app/images/logo1.jpg' %}" type="image/png">
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        
+        <!--css-->
+        <link rel="stylesheet" style="text/css" href="{%static '/app/css/main.css' %}" rel="stylesheet"/>
+        <link rel="stylesheet" style="text/css" href="{%static '/app/css/chatbox.css' %}" rel="stylesheet"/>
+
+        <!--<link rel="stylesheet" href="{% static 'app/css/name.css'%}">-->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+        <!--Bootstrap 5-->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+        <script type="text/javascript">
+          var user = '{{request.user}}'
+          function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                } 
+            }
+            return cookieValue;
+          }
+          const csrftoken = getCookie('csrftoken');
+        </script> 
+        
+       
+    </head>
+    <body>      
+    {% block content %}{% endblock %}
+        <!--Header-->
+        <Header>
+            <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                <div class="container-fluid">
+                  <a class="navbar-brand" href="#">
+                    <img src="{% static 'app/images/logo1.jpg' %}" width="100" height="50"/>
+                  </a>
+                  
+                  <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                  </button> 
+                  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                      <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="{%url 'home'%}">Home</a>
+                      </li>
+                      {% if is_driver %}
+                      <li class="nav-item">
+                          <a class="nav-link" href="{% url 'schedule' %}">Schedule</a>
+                      </li>
+                      {% endif %}
+                      {% comment %} <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Range of vehicle
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                          <li><a class="dropdown-item" href="#">Bed</a></li>
+                          <li><a class="dropdown-item" href="#">Seat</a></li>
+                          <li><hr class="dropdown-divider"></li>
+                          <li><a class="dropdown-item" href="#">Limousine</a></li>
+                        </ul>
+                      </li> {% endcomment %}
+                      <li class="nav-item">
+                        <a class="nav-link" href="{%url 'about_us'%}">About Us</a>
+                      </li>
+                      {% comment %} <li class="nav-item">
+                        <a class="nav-link" href="#">Contact</a>
+                      </li> {% endcomment %}
+                    </ul>
+                    
+                  </div>
+                  <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item dropdown">
+                      <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                          {%if request.user.first_name%}
+                           Hello, {{request.user.first_name}}!
+                          {%else%}
+                          Hello, {{request.user}}!
+                          {%endif%}
+                          
+                          {% comment %} {{request.user.active}} {% endcomment %}
+                          {% comment %} {{request.user.password}} {% endcomment %}
+
+                          {% comment %} {{request.user.username}} {% endcomment %}
+                          {% comment %} {{token}} {% endcomment %}
+                          {% comment %} {{request.session}} {% endcomment %}
+                          {% comment %} {{request.user.first_name}} {% endcomment %}
+                      </a>
+                      <ul class="dropdown-menu" style="visibility: {{user_login}}" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="{%url 'profile'%}">Profile</a></li>
+                        {% if not is_driver %}
+                        <li><a class="dropdown-item" href="{%url 'history'%}">History</a></li>
+                        {% endif %}
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item"  href="{%url 'logout'%}">Logout</a></li>
+                      </ul>
+                    </li>
+                    <li class="nav-item" style="visibility: {{user_not_login}}">
+                      <a class="nav-link" href="{% url 'login'%}">Login</a>
+                    </li>
+                    <li class="nav-item" style="visibility: {{user_not_login}}">
+                      <a class="nav-link" href="{% url 'register'%}">Register</a>
+                    </li>
+                </ul>                   
+               
+          
+
+
+                </div>
+              </nav>
+        </Header>
+         {% comment %} {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}  {% endcomment %}
+
+        <!--main-->
+        {% block banner_slider %}{% endblock banner_slider %}
+        {% block about_us %}{% endblock about_us %}
+        {% block main-content  %}{% endblock main-content %}
+        {% block register %}{% endblock register %}
+        {% block search %}{% endblock search %}
+        {% block profile %}{% endblock profile %}
+        {% block history_content %}{% endblock history_content %}
+        {% block content_checkout %}{% endblock content_checkout %}
+        {% block schedule %}{% endblock schedule %}
+
+       <!-- Chatbox -->
+    <button class="chatbox-open">
+      <i class="fa fa-comment fa-2x" aria-hidden="true"></i>
+  </button>
+  <button class="chatbox-close">
+      <i class="fa fa-close fa-2x" aria-hidden="true"></i>
+  </button>
+  <section class="chatbox-popup">
+      <header class="chatbox-popup__header">
+          <aside style="flex:3">
+              <i class="fa fa-user-circle fa-4x chatbox-popup__avatar" aria-hidden="true"></i>
+          </aside>
+          <aside style="flex:8">
+              <h1>ChatBox</h1>
+          </aside>
+          <aside style="flex:1">
+              <button class="chatbox-maximize"><i class="fa fa-window-maximize" aria-hidden="true"></i></button>
+          </aside>
+      </header>
+      <main class="chatbox-popup__main" id="chat-container-user">
+          <!-- Đây là nơi hiển thị tin nhắn của người dùng -->
+      </main>
+      <footer class="chatbox-popup__footer">
+          <aside style="flex:10">
+              <textarea type="text" placeholder="Type your message here..." id="message-input" autofocus></textarea>
+          </aside>
+          <aside style="flex:1;color:#888;text-align:center;">
+              <button id="send-button"><i class="fa fa-paper-plane" aria-hidden="true"></i></button>
+          </aside>
+      </footer>
+  </section>
+
+
+        <!--Footer-->
+        {% block footer-content %}
+            <!-- Footer -->
+            <footer class="text-center text-lg-start bg-light text-muted ">
+                <!-- Section: Social media -->
+                <section class="d-flex justify-content-center justify-content-lg-between p-4 border-bottom">
+                  <!-- Left -->
+                  <div class="me-5 d-none d-lg-block">
+                    <span>Get connected with us on social networks:</span>
+                  </div>
+                  <!-- Left -->
+          
+                  <!-- Right -->
+                  <div>
+                    <a href="https://www.facebook.com/tannghia.vo.9" class="me-4 link-secondary">
+                      <i class="bi bi-facebook"></i>
+                    </a>
+                    <a href="https://www.facebook.com/tannghia.vo.9" class="me-4 link-secondary">
+                      <i class="bi bi-twitter"></i>
+                    </a>
+                    <a href="https://www.facebook.com/tannghia.vo.9" class="me-4 link-secondary">
+                      <i class="bi bi-instagram"></i>
+                    </a>
+                    <!-- <a href="" class="me-4 link-secondary">
+                    <i class="fab fa-github"></i>
+                  </a> -->
+                  </div>
+                  <!-- Right -->
+                </section>
+                <!-- Section: Social media -->
+          
+                <!-- Section: Links  -->
+                <section class="">
+                  <div class="container text-uppercase text-md-start mt-5">
+                    <!-- Grid row -->
+                    <div class="row mt-3">
+                      <!-- Grid column -->
+                      <div class="col-md-6 col-lg-6 col-xl-6 mx-auto mb-4 text-center">
+                        <!-- Content -->
+                        <h6 class="text-uppercase fw-bold mb-4">
+                          <i class="fas fa-gem me-3 text-center"></i>Mart Bus
+                        </h6>
+                        <p>
+                          Mart Bus is a chain of Travel Bus
+                        </p>
+                        <p>
+                          With the mission: "<i>TRANSPORTATION SOLUTIONS is committed to providing top-quality bus services and products
+                          to enhance the travel experience of our customers.</i>"
+                        </p>
+          
+                      </div>
+          
+                      <!-- <div class="col-md-4 col-lg-4 col-xl-4 mx-auto mb-4 text-center">
+                        <h6 class="text-uppercase fw-bold mb-4">
+                          Products
+                        </h6>
+                        <p>
+                          <a href="search.php?search=women&btnSearch=" class="text-reset " style="text-decoration: none;">Car</a>
+                        </p>
+                        <p>
+                          <a href="search.php?search=man&btnSearch=" class="text-reset" style="text-decoration: none;">Lego</a>
+                        </p>
+                      </div> -->
+          
+                      <div class="col-md-6 col-lg-6 col-xl-6 mx-auto mb-4 text-center">
+                        <h6 class="text-uppercase fw-bold mb-4">
+                          Contact
+                        </h6>
+                        <p>
+                          <a href="" class="text-reset" style="text-decoration: none;"><i class="bi bi-house-door-fill"></i>No. 160, 30/4 Street, An Phu Ward, Ninh Kieu District, Can Tho City, Vietnam</a>
+                        </p>
+                        <p>
+                          <a href="" class="text-reset" style="text-decoration: none;">
+                            <i class="bi bi-envelope-at-fill"></i>MartBus@example.com</a>
+                        </p>
+                        <p><i class="bi bi-telephone-fill"></i> + 01 234 567 88</p>
+                      </div>
+          
+          
+                      <!-- Grid column -->
+                    </div>
+                    <!-- Grid row -->
+                  </div>
+                </section>
+                <!-- Section: Links  -->
+          
+                <!-- Copyright -->
+                <div class="text-center p-4" style="background-color: rgba(0, 0, 0, 0.025);">
+                  © 2024 Mart Bus joint stock company
+                  <a class="text-reset fw-bold" href="{{home}}">MartBus.com</a>
+                </div>
+                <!-- Copyright -->
+              </footer>
+        {% endblock footer-content %}
+
+
+<!-- Bootstrap JS -->
+<script src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $(".chatbox-open").click(function () {
+            $(".chatbox-popup, .chatbox-close").fadeIn();
+            $(".chatbox-open").fadeOut();
+        });
+
+        $(".chatbox-close").click(function () {
+            $(".chatbox-popup, .chatbox-close").fadeOut();
+            $(".chatbox-open").fadeIn();
+        });
+
+        $(".chatbox-maximize").click(function () {
+            $(".chatbox-popup, .chatbox-open, .chatbox-close").fadeOut();
+            $(".chatbox-panel").fadeIn().css({ display: "flex" });
+        });
+
+        $(".chatbox-panel-close").click(function () {
+            $(".chatbox-panel").fadeOut();
+            $(".chatbox-open").fadeIn();
+        });
+
+        $('#send-button').click(function() {
+            sendMessage($('#message-input').val().trim(), document.getElementById('chat-container-user'));
+        });
+
+        function displayMessage(user, message, container) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('chat-message', `chat-message-${user.toLowerCase()}`);
+            const now = new Date();
+            const time = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+            messageElement.innerHTML = `<strong>${user} (${time}):</strong> ${message}`;
+            container.appendChild(messageElement);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendMessage(message, container) {
+            if (message === '') return;
+
+            displayMessage('You', message, container);
+
+            fetch('http://localhost:5005/webhooks/rest/webhook', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    sender: 'user',
+                    message: message
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const botResponse = data[0].text;
+                displayMessage('Bot', botResponse, container);
+            })
+            .catch(error => console.error('Error:', error));
+
+            // Xóa nội dung trong ô nhập liệu sau khi gửi
+            $('#message-input').val('');
+        }
+    });
+</script>
+        
+        <script src="" async defer></script>
+    </body>
+</html>

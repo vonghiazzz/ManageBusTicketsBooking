@@ -1,0 +1,196 @@
+version: "3.1"
+
+nlu:
+
+  - intent: thank
+    examples: |
+      - thanks
+      - thank you
+      - ok
+      - good
+
+  - intent: greet
+    examples: |
+      - hey
+      - hello
+      - hi
+      - hello there
+      - good morning
+      - good evening
+      - moin
+      - hey there
+      - let's go
+      - hey dude
+      - goodmorning
+      - goodevening
+      - good afternoon
+
+  - intent: goodbye
+    examples: |
+      - cu
+      - good by
+      - cee you later
+      - good night
+      - bye
+      - goodbye
+      - have a nice day
+      - see you around
+      - bye bye
+      - see you later
+
+  - intent: affirm
+    examples: |
+      - yes
+      - y
+      - indeed
+      - of course
+      - that sounds good
+      - correct
+
+  - intent: deny
+    examples: |
+      - no
+      - n
+      - never
+      - I don't think so
+      - don't like that
+      - no way
+      - not really
+
+  - intent: mood_great
+    examples: |
+      - perfect
+      - great
+      - amazing
+      - feeling like a king
+      - wonderful
+      - I am feeling very good
+      - I am great
+      - I am amazing
+      - I am going to save the world
+      - super stoked
+      - extremely good
+      - so so perfect
+      - so good
+      - so perfect
+
+  - intent: mood_unhappy
+    examples: |
+      - my day was horrible
+      - I am sad
+      - I don't feel very well
+      - I am disappointed
+      - super sad
+      - I'm so sad
+      - sad
+      - very sad
+      - unhappy
+      - not good
+      - not very good
+      - extremly sad
+      - so saad
+      - so sad
+
+  - intent: bot_challenge
+    examples: |
+      - are you a bot?
+      - are you a human?
+      - am I talking to a bot?
+      - am I talking to a human?
+
+
+  - intent: ask_company
+    examples: |
+      - Công ty bạn là làm về gì?
+      - Cho tôi biết về công ty của bạn?
+      - Công ty bạn làm gì?
+      - Bạn có thể giới thiệu về công ty không?
+      - Công ty bạn cung cấp những dịch vụ gì?
+      - Cho tôi biết thêm thông tin về công ty.
+
+  - intent: ask_hour
+    examples: |
+      - Giờ hoạt động của công ty bạn như thế nào?
+      - Công ty bạn mở cửa lúc mấy giờ?
+      - Khi nào thì công ty đóng cửa?
+      - Giờ làm việc của bạn là gì?
+      - Thời gian làm việc của công ty bạn thế nào?
+
+  - intent: ask_address
+    examples: |
+      - Địa chỉ của công ty bạn ở đâu?
+      - Làm sao để đến công ty bạn?
+      - Công ty bạn nằm ở đâu?
+      - Tôi có thể tìm công ty bạn ở đâu?
+      - Vị trí của công ty bạn là gì?
+
+  - intent: ask_price
+    examples: |
+      - Tôi muốn hỏi giá của chuyến xe
+
+  - intent: feedback
+    examples: |
+      - Tôi muốn đưa ra phản hồi.
+      - Tôi có ý kiến về dịch vụ.
+      - Bạn có thể nhận phản hồi của tôi không?
+      - Tôi muốn gửi phản hồi về sản phẩm.
+      - Tôi có một số góp ý.
+
+  - intent: reason_feedback
+    examples: |
+      - Tôi nghĩ nên thêm những khung giờ cho các chuyến đi.
+
+
+  - intent: provide_good_feedback
+    examples: |
+      - Dịch vụ rất tốt.
+      - Tôi rất hài lòng với dịch vụ
+
+  - intent: provide_bad_feedback
+    examples: |
+      - Sản phẩm này có một số vấn đề
+      - Tôi có một số đề xuất để cải thiện
+      - Tôi nghĩ sản phẩm này cần cải thiện
+      - Sản phẩm cần nâng cao chất lượng về 
+
+  - intent: book_ticket
+    examples: |
+      - Tôi muốn đặt vé xe
+      - Làm sao để đặt vé xe?
+      - Đặt vé xe như thế nào?
+      - Tôi cần đặt vé đi [Sài Gòn](destination)
+      - Tôi muốn đặt vé xe buýt
+      - Làm sao để đặt vé xe khách?
+      - Làm thế nào để đặt vé xe trực tuyến?
+      - Tôi muốn đặt vé từ [Hà Nội](departure) đến [Đà Nẵng](destination) 
+      - Có xe nào đi từ [Hà Nội](departure) đến [Đà Nẵng](destination)?
+      - Bạn có vé xe nào từ [Hà Nội](departure) đến [Đà Nẵng](destination) không?
+      - Làm sao để đặt vé xe từ [TP.HCM](departure) đến [Đà Lạt](destination)?
+      - Đặt vé xe như thế nào từ [Cần Thơ](departure) đến [Vũng Tàu](destination)?
+      - Tôi cần đặt vé đi [Sài Gòn](destination)
+      - Tôi muốn đặt vé xe buýt từ [Nha Trang](departure) đến [Đà Nẵng](destination)
+      - Làm sao để đặt vé xe khách từ [Hà Giang](departure) đến [Quy Nhơn](destination)?
+      - Làm thế nào để đặt vé xe trực tuyến từ [Hà Tĩnh](departure) đến [Sóc Trăng](destination)?
+      - Tôi muốn đặt vé từ [Đà Lạt](departure) đến [Cần Thơ](destination)
+      - Có xe nào đi từ [Hà Nội](departure) đến [Đà Nẵng](destination) không?
+#       - Tôi cần đặt vé xe cho [ngày mai](date)
+
+
+      
+  - intent: provide_info
+    examples: |
+      - Tôi muốn đi từ [Hà Nội](departure) đến [Sài Gòn](destination) 
+      - Tôi muốn đặt vé cho ngày mai
+      - Tôi cần vé [khứ hồi, 1 chiều](ticket_type)
+      - Tôi cần một vé loại [người lớn, giường, ghế](ticket_type)
+      - Điểm xuất phát là [Đà Nẵng](departure), điểm đến là [Nha Trang](destination)
+      - Tôi muốn đi từ [Cần Thơ](departure) đến [Phan Thiết](destination)
+      - Điểm xuất phát là [Đà Nẵng](departure)
+      - Điểm đến là [Nha Trang, Cần Thơ](destination)
+      - [Nghĩa, Đạt, Phong, Lâm, Khang](name)
+      - [0123456789](phone_number)
+#      - Tôi muốn đi vào [ngày mai](date)
+
+  # - intent: query_database
+  #   examples: |
+  #     - I want booking

@@ -1,0 +1,274 @@
+{% extends 'app/base.html' %}
+{% load static %}
+
+{% block title %}
+<title>Booking page</title>
+{% endblock title %}
+
+{% block content_checkout %}
+<style>
+    .seat {
+        position: relative;
+        display: inline-block;
+        cursor: pointer;
+    }
+    .seat img {
+        display: block;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .seat span {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: black;
+        font-weight: bold;
+        pointer-events: none;
+        font-size: 10px;
+    }
+    .seat:hover img {
+        transform: scale(1.1);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+    .seat.selected img {
+        transform: scale(1.1);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        border: 2px solid green; /* Change as needed for the selected state */
+        opacity: 0.5; /* Mờ cho ghế đã chọn */
+    }
+    .seat.disabled {
+        cursor: not-allowed;
+        opacity: 0.1;
+    }
+</style>
+
+<div class="row py-3" style="width:100%;">
+    <div class="col-lg-6">
+        <div class="box-element" id="form-wrapper">
+            <form id="form" method="POST">
+                {% csrf_token %}
+                <div id="shipping-info">
+                    <p>User Information:</p>
+                    {% if error_message %}
+                        <div class="alert alert-danger">
+                            {{ error_message }}
+                        </div>
+                    {% endif %}
+                    <hr>
+                    <div class="form-field">
+                        <input class="form-control" type="text" name="name" value="{{request.user.username}}" placeholder="Name..">
+                    </div>
+                    <div class="form-field">
+                        <input class="form-control" type="text" {% if request.user.phone_Number %} value="{{ request.user.phone_Number }}" {% else %} placeholder="Phone Number..." {% endif %} name="mobile" placeholder="Mobile..">
+                    </div>
+                </div>
+                <div class="row my-4 text-center" style="width:100%">
+                    <div class="row">
+                        <h3 class="text-uppercase">Choose seat number</h3>
+                    </div>
+                    <div class="col-md-6">
+                        <h5 class="text-uppercase">Tầng dưới</h5>
+
+                        <div class="row pt-2 pb-0">
+                            {% if tickets %}
+                                {% for ticket in tickets %}
+                                    {% if forloop.counter == 1 %}
+                                    <div class="col-md-4 col-sm-4">
+                                        <div class="seat{% if ticket.status %} disabled{% endif %}" data-ticket-id="{{ ticket.id }}">
+                                            <img src="{% static 'media/ticket/2024/04/ghe.jpg' %}" alt="seat icon" style="width:50px">
+                                            <span>{{ ticket.idSeatNumber }}</span> <!-- Hiển thị số chỗ ngồi, ví dụ: A01, A02 -->
+                                            {% comment %} <input type="hidden" name="selected_tickets" value="{{ ticket.id }}"> {% endcomment %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                    </div>
+                                    {% endif %}
+                                    {% if forloop.counter == 2 %}
+                                    <div class="col-md-4 col-sm-4">
+                                        <div class="seat {% if ticket.status %}disabled{% endif %}" data-ticket-id="{{ ticket.id }}">
+                                            <img src="{% static 'media/ticket/2024/04/ghe.jpg' %}" alt="seat icon" style="width:50px">
+                                            <span>{{ ticket.idSeatNumber }}</span> <!-- Hiển thị số chỗ ngồi, ví dụ: A01, A02 -->
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        <div class="row py-2">
+                            {% for ticket in tickets %}
+                                {% if forloop.counter >= 3 and forloop.counter <= 17 %}
+                                    <div class="col-md-4 col-sm-4 py-2">
+                                        <div class="seat{% if ticket.status %} disabled{% endif %}" data-ticket-id="{{ ticket.id }}">
+                                            <img src="{% static 'media/ticket/2024/04/ghe.jpg' %}" alt="seat icon" style="width:50px">
+                                            <span>{{ ticket.idSeatNumber }}</span> <!-- Hiển thị số chỗ ngồi, ví dụ: A01, A02 -->
+                                            {% comment %} <input type="hidden" name="selected_tickets" value="{{ ticket.id }}"> {% endcomment %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h5 class="text-uppercase">Tầng trên</h5>
+                        <div class="row pt-2 pb-0">
+                            {% if tickets %}
+                                {% for ticket in tickets %}
+                                    {% if forloop.counter == 18 %}
+                                    <div class="col-md-4 col-sm-4">
+                                        <div class="seat{% if ticket.status %} disabled{% endif %}" data-ticket-id="{{ ticket.id }}">
+                                            <img src="{% static 'media/ticket/2024/04/ghe.jpg' %}" alt="seat icon" style="width:50px">
+                                            <span>{{ ticket.idSeatNumber }}</span> <!-- Hiển thị số chỗ ngồi, ví dụ: A01, A02 -->
+                                            {% comment %} <input type="hidden" name="selected_tickets" value="{{ ticket.id }}"> {% endcomment %}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                    </div>
+                                    {% endif %}
+                                    {% if forloop.counter == 19 %}
+                                    <div class="col-md-4 col-sm-4">
+                                        <div class="seat{% if ticket.status %} disabled{% endif %}" data-ticket-id="{{ ticket.id }}">
+                                            <img src="{% static 'media/ticket/2024/04/ghe.jpg' %}" alt="seat icon" style="width:50px">
+                                            <span>{{ ticket.idSeatNumber }}</span> <!-- Hiển thị số chỗ ngồi, ví dụ: A01, A02 -->
+                                            {% comment %} <input type="hidden" name="selected_tickets" value="{{ ticket.id }}"> {% endcomment %}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        <div class="row py-2">
+                            {% for ticket in tickets %}
+                                {% if forloop.counter >= 20 and forloop.counter <= 34 %}
+                                    <div class="col-md-4 col-sm-4 py-2">
+                                        <div class="seat{% if ticket.status %} disabled{% endif %}" data-ticket-id="{{ ticket.id }}">
+                                            <img src="{% static 'media/ticket/2024/04/ghe.jpg' %}" alt="seat icon" style="width:50px">
+                                            <span>{{ ticket.idSeatNumber }}</span> <!-- Hiển thị số chỗ ngồi, ví dụ: A01, A02 -->
+                                            {% comment %} <input type="hidden" name="selected_tickets" value="{{ ticket.id }}"> {% endcomment %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <input id="form-button" class="btn btn-success btn-block" type="submit" value="Confirm">
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="box-element">
+            {% comment %} <a class="btn btn-outline-dark" href="{% url 'home' %}">&#x2190; Back to Home</a> {% endcomment %}
+            {% comment %} <hr> {% endcomment %}
+            <h3>Order Summary</h3>
+            <hr>
+            <div class="cart-row row">
+                <div class="col-md-6">
+                    <p><strong>Start Point:</strong> {{ trip.id_Route.startPoint }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>End Point:</strong> {{ trip.id_Route.endPoint }}</p>
+                </div>
+            </div>
+            <div class="cart-row row">
+                <div class="col-md-6">
+                    <p><strong>Departure Station:</strong> {{ trip.departure_Station }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Ending Station:</strong> {{ trip.ending_Station }}</p>
+                </div>
+            </div>
+            <div class="cart-row row">
+                <div class="col-md-6">
+                    <p><strong>Distance:</strong> {{ trip.distance }}km</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Duration:</strong> {{ trip.hours }}h</p>
+                </div>
+            </div>
+            <div class="cart-row row">
+                <div class="col-md-6">
+                    <p><strong>Price:</strong> ${{ trip.price }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Amount of Tickets: <span id="selected-seats">0</span></strong></p>
+                </div>
+            </div>
+        </div>
+        <h5>Total: $<span id="total-price">0</span></h5>
+        <div class="row justify-content-center">
+            <div class="col-auto action-link-wrap">
+                <a onclick="history.back(-1)" class="btn btn-outline-primary me-2">
+                    <i class="bi bi-arrow-left"></i> Go Back
+                </a>
+                <a href="{% url 'home' %}" class="btn btn-primary">
+                    Go to Home Page <i class="bi bi-house"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var seats = document.querySelectorAll(".seat");
+        var selectedTickets = []; // Danh sách các vé đã chọn
+        var maxSeats = 5;
+        var ticketPrice = {{ trip.price }}; // Giá của một vé
+
+        function updateSeatCount() {
+            var selectedSeats = document.querySelectorAll(".seat.selected");
+            document.getElementById("selected-seats").textContent = selectedSeats.length;
+            document.getElementById("total-price").textContent = selectedSeats.length * ticketPrice;
+        }
+
+        seats.forEach(function(seat) {
+            if (!seat.classList.contains("disabled")) {
+                seat.addEventListener("click", function() {
+                    var ticketId = seat.dataset.ticketId; // Lấy ID của ticket từ data attribute
+
+                    if (seat.classList.contains("selected")) {
+                        seat.classList.remove("selected");
+                        updateSeatCount();
+                        // Remove ticket ID from selectedTickets array
+                        selectedTickets = selectedTickets.filter(function(id) {
+                            return id !== ticketId;
+                        });
+                    } else {
+                        if (selectedTickets.length < maxSeats) {
+                            seat.classList.add("selected");
+                            updateSeatCount();
+                            // Add ticket ID to selectedTickets array
+                            selectedTickets.push(ticketId);
+                        } else {
+                            alert("You can select a maximum of 5 seats.");
+                        }
+                    }
+                    console.log(selectedTickets); // Debugging: check selectedTickets array in console
+                });
+            }
+        });
+
+        document.getElementById('form').addEventListener('submit', function(event) {
+            updateSeatCount();
+            if (selectedTickets.length < 1) {
+                event.preventDefault();
+                alert("You must select at least 1 seat.");
+            } else {
+                // Remove any existing hidden input for selected_tickets
+                var existingInput = document.querySelector('input[name="selected_tickets"]');
+                if (existingInput) {
+                    existingInput.remove();
+                }
+                // Add new hidden input for selected_tickets
+                var selectedTicketsInput = document.createElement('input');
+                selectedTicketsInput.setAttribute('type', 'hidden');
+                selectedTicketsInput.setAttribute('name', 'selected_tickets');
+                selectedTicketsInput.setAttribute('value', JSON.stringify(selectedTickets)); // Convert array to JSON string
+                document.getElementById('form').appendChild(selectedTicketsInput);
+            }
+        });
+    });
+</script>
+
+{% endblock content_checkout %}

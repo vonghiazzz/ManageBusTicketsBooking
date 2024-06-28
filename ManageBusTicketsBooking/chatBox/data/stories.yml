@@ -1,0 +1,139 @@
+  version: "3.1"
+
+  stories:
+
+  - story: happy path
+    steps:
+    - intent: greet
+    - action: utter_greet
+    # - intent: give_name
+    # - action: utter_greet_with_name
+    - intent: mood_great
+    - action: utter_happy
+
+  - story: sad path 1
+    steps:
+    - intent: greet
+    - action: utter_greet
+    - intent: mood_unhappy
+    - action: utter_cheer_up
+    - action: utter_did_that_help
+    - intent: affirm
+    - action: utter_happy
+
+  - story: sad path 2
+    steps:
+    - intent: greet
+    - action: utter_greet
+    - intent: mood_unhappy
+    - action: utter_cheer_up
+    - action: utter_did_that_help
+    - intent: deny
+    - action: utter_goodbye
+
+
+  - story: greet and ask company
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: ask_company
+      - action: utter_company
+      - intent: affirm
+      - action: utter_thank
+
+
+  - story: greet and ask address
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: ask_address
+      - action: utter_address
+      - intent: affirm
+      - action: utter_thank
+
+      
+  - story: greet and ask hour
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: ask_hour
+      - action: utter_hour
+      - intent: affirm
+      - action: utter_thank
+
+  - story: greet and good feedback
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: feedback
+      - action: utter_feedback
+      - intent: provide_good_feedback
+      - action: utter_thank_for_good_feedback
+
+  - story: greet and bad feedback
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: feedback
+      - action: utter_feedback
+      - intent: provide_bad_feedback
+      - action: utter_bad_feedback
+      - intent: reason_feedback
+      - action: utter_thank_for_bad_feedback
+
+  - story: greet and ask price
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: ask_price
+      - action: utter_ask_departure
+      - intent: provide_info
+        entities:
+          - departure
+      - action: utter_ask_destination
+      - intent: provide_info
+        entities:
+          - destination
+      - action: action_ask_price
+      - intent: affirm
+      - action: utter_thank
+
+
+  - story: greet and book ticket variant 1
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: book_ticket
+        entities:
+          - departure
+      - action: utter_ask_destination
+      - intent: provide_info
+        entities:
+          - destination
+      - action: action_query_database
+      - intent: thank
+      - action: utter_thank
+
+
+  - story: greet and book ticket variant 3
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: book_ticket
+        entities:
+          - departure
+          - destination
+      - action: action_query_database
+      - intent: thank
+      - action: utter_thank
+
+  - story: greet and book ticket variant 2
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: book_ticket
+      - action: utter_note
+      - intent: thank
+      - action: utter_thank
+
+

@@ -1,0 +1,187 @@
+  version: "3.1"
+  nlu:
+
+  intents:
+    - thank
+    - greet
+    - goodbye
+    - affirm
+    - deny
+    - mood_great
+    - mood_unhappy
+    - bot_challenge
+    - book_ticket
+    - provide_info
+    - query_database
+    - ask_company
+    - ask_hour
+    - ask_address
+    - ask_price
+    - feedback
+    - provide_good_feedback
+    - provide_bad_feedback
+    - reason_feedback
+  entities:
+    - departure
+    - destination
+    # - date
+    # - ticket_type
+    
+
+
+  slots:
+    departure:
+      type: text
+      mappings:
+        - type: from_entity
+          entity: departure
+        - type: from_entity
+          entity: location
+          
+  
+    destination:
+      type: text
+      mappings:
+        - type: from_entity
+          entity: destination
+        - type: from_entity
+          entity: location
+
+    # date:
+    #   type: text
+    #   mappings:
+    #     - type: from_entity
+    #       entity: date
+
+    # name:
+    #   type: text
+    #   mappings:
+    #     - type: from_entity
+    #       entity: name
+
+    # phone_number:
+    #   type: text
+    #   mappings:
+    #     - type: from_entity
+    #       entity: phone_number
+    # ticket_type:
+    #   type: text
+    #   mappings:
+    #     - type: from_entity
+    #       entity: ticket_type
+
+
+
+  responses:
+    # utter_greet_with_name:
+    #   - text: "Hey {cust_sex} {cust_name}! How are you?"
+    utter_company:
+      - text: "Công ty có tên MART BUS. Nó là MỘT CHUỖI XE BUÝT DU LỊCH"
+
+    utter_hour:
+      - text: "Giờ hoạt động của chúng tôi là 24/24"
+
+    utter_address:
+      - text: "Địa chỉ là NO. 160, 30/4 STREET, AN PHU WARD, NINH KIEU DISTRICT, CAN THO CITY, VIETNAM. Bạn có thể đến theo địa chỉ này hoặc liên hệ với chúng tôi qua số điện thoại 00001234568."
+    utter_feedback:
+      - text: "Bạn hãy cung cấp thông tin để bên công ty sửa đổi ạ!"
+
+    
+
+    utter_thank_for_bad_feedback:
+      - text: "Cảm ơn bạn đã cho chúng tôi biết lý do. Chúng tôi sẽ cố gắng cải thiện dịch vụ của mình."
+    
+    utter_thank_for_good_feedback:
+      - text: "Cảm ơn bạn đã nhận xét tốt về dịch vụ của chúng tôi."
+
+    utter_bad_feedback:
+      - text: "Bạn hãy cung cấp thông tin cụ thể hơn!"
+    utter_thank:
+      - text: "Rất vui được phục vụ cho bạn!"
+
+    utter_greet:
+      - text: "Chào bạn! Tôi có thể giúp gì cho bạn hôm nay?"
+
+    utter_ask_why_not:
+      - text: "Bạn có thể cho chúng tôi biết lý do bạn không muốn đặt vé không?"
+
+    utter_cheer_up:
+      - text: "Here is something to cheer you up: <a href='https://www.facebook.com/your-image-link' target='_blank'>Click here to view facebook</a>"
+        # image: "https://link-to-your-facebook-image.jpg"
+
+    utter_note: 
+      - text: "Bạn chọn booking của trip bạn muốn đi và điền các thông tin yêu cầu sau đó nhấn Confirm"
+    
+    utter_note_detail: 
+      - text: "Bạn chọn điền các thông tin của trip vào ô search ở trang homepage sau đó nhấn Find trips"
+   
+    # utter_link_ticket: 
+    #   - text: "<a href='https://www.facebook.com/your-image-link' target='_blank'>Click here to view ticket</a>"
+
+    utter_did_that_help:
+      - text: "Did that help you?"
+
+    utter_happy:
+      - text: "Great, carry on!"
+
+    utter_goodbye:
+      - text: "Tạm biệt! Hẹn gặp lại bạn."
+
+    utter_ask_departure:
+      - text: "Bạn muốn đi từ đâu?"
+
+
+    utter_ask_destination:
+      - text: "Bạn muốn đến đâu?"
+
+    utter_ask_ticket_type:
+      - text: "Bạn cần vé loại nào? (ví dụ: giường, ghế)"
+
+    # utter_ticket_info:
+    #   - text: "Bạn muốn đặt vé từ {departure} đến {destination} vào ngày {date} cho loại vé {ticket_type}, đúng không?"
+
+    utter_iamabot:
+      - text: "I am a bot, powered by Rasa."
+
+    # utter_ask_name:
+    #   - text: "Could you please provide your name?"
+
+    # utter_ask_phone_number:
+    #   - text: "What is your phone number?"
+
+    # utter_book_ticket:
+    #   - text: "Your ticket from {departure} to {destination} has been booked under the name {name} and phone number {phone_number}. Thank you!"
+
+    # utter_confirm_ticket:
+    #   - text: "Your ticket from {departure} to {destination} has been booked. We will contact you shortly. Thank you!"
+
+
+  actions:
+  - action_ask_price
+  - utter_bad_feedback
+  - action_query_database
+  - utter_company
+  - utter_hour
+  - utter_address
+  - utter_feedback
+  - utter_thank
+  - utter_link_ticket
+  - utter_greet
+  - utter_note
+  - utter_ask_why_not
+  - utter_thank_for_feedback
+  - utter_happy
+  - utter_cheer_up
+  - utter_did_that_help
+  - utter_goodbye
+  # - utter_ask_name
+  # - utter_ask_phone_number
+  - utter_ask_departure
+  - utter_ask_destination
+  - utter_ask_ticket_type
+  # - utter_ticket_info
+  # - utter_book_ticket
+  # - utter_confirm_ticket
+  session_config:
+    session_expiration_time: 60
+    carry_over_slots_to_new_session: true

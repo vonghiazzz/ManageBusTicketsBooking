@@ -1,0 +1,52 @@
+[
+  {
+    "tag_name": "entity",
+    "ids_to_tags": {
+      "1": "B-departure",
+      "2": "I-departure",
+      "3": "L-departure",
+      "4": "U-departure",
+      "5": "B-destination",
+      "6": "I-destination",
+      "7": "L-destination",
+      "8": "U-destination",
+      "9": "B-name",
+      "10": "I-name",
+      "11": "L-name",
+      "12": "U-name",
+      "13": "B-phone_number",
+      "14": "I-phone_number",
+      "15": "L-phone_number",
+      "16": "U-phone_number",
+      "17": "B-ticket_type",
+      "18": "I-ticket_type",
+      "19": "L-ticket_type",
+      "20": "U-ticket_type",
+      "0": "O"
+    },
+    "tags_to_ids": {
+      "B-departure": 1,
+      "I-departure": 2,
+      "L-departure": 3,
+      "U-departure": 4,
+      "B-destination": 5,
+      "I-destination": 6,
+      "L-destination": 7,
+      "U-destination": 8,
+      "B-name": 9,
+      "I-name": 10,
+      "L-name": 11,
+      "U-name": 12,
+      "B-phone_number": 13,
+      "I-phone_number": 14,
+      "L-phone_number": 15,
+      "U-phone_number": 16,
+      "B-ticket_type": 17,
+      "I-ticket_type": 18,
+      "L-ticket_type": 19,
+      "U-ticket_type": 20,
+      "O": 0
+    },
+    "num_tags": 21
+  }
+]

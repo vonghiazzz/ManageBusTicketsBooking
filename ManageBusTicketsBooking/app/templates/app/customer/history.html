@@ -1,0 +1,62 @@
+{% extends 'app/base.html' %}
+{% load static %}
+
+{% block title %}
+    <title>History page</title>
+{% endblock title %}
+
+{% block history_content %}
+<div class="container">
+    <h2>Booking History</h2>
+    {% if booked_tickets %}
+        <div class="row">
+            {% for item in booked_tickets %}
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Ticket ID: {{ item.ticket.id }}</h5>
+							{% comment %} <h5 class="card-title">Ticket: {{ item.ticket.img }}</h5> {% endcomment %}
+
+                            {% comment %} <h5 class="card-title">Image: <img src="{%static '{{ticket.img.url }}' %}"> </h5>
+							<h5 class="card-title">Image: {%static '{{item.ticket.img }}' %} </h5> {% endcomment %}
+							<h5 class="card-title">Image: 
+								{% if item.ticket.img %}
+									<img class="rounded-circle mt-5" width="220px" src="{% static item.ticket.img.url %}" alt="{{ item.ticket.name }}">
+								{% else %}
+									<h5>Not found image</h5>
+								{% endif %} 
+							</h5>
+
+							
+		
+                            <h5 class="card-title">Ticket Name: {{ item.ticket.name }}</h5>
+                            <p class="card-text">Seat Number: {{ item.ticket.idSeatNumber }}</p>
+                            <p class="card-text">Trip Name: {{ item.ticket.idTrip.name }}</p>
+                            <h5 class="card-title">Ticket Status: {{ item.ticket.status }}</h5>
+                            <h5 class="card-title">Booking Status: {{ item.booking_status }}</h5>
+                            <!-- Các thông tin khác về vé -->
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No tickets have been booked yet.</p>
+    {% endif %}
+    <div class="row justify-content-center">
+        <div class="col-auto action-link-wrap">
+            <a onclick="history.back(-1)" class="btn btn-outline-primary me-2">
+                <i class="bi bi-arrow-left"></i> Go Back
+            </a>
+            <a href="{% url 'home' %}" class="btn btn-primary">
+                Go to Home Page <i class="bi bi-house"></i>
+            </a>
+        </div>
+    </div>
+
+</div>
+
+<br><br><br>
+
+<br><br><br>
+{% endblock history_content %}

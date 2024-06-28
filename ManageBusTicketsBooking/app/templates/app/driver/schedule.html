@@ -1,0 +1,48 @@
+{% extends "app/base.html" %}
+{% load static %}
+
+{% block title %}
+    <title>Schedule Page</title>
+{% endblock title %}
+
+{% block schedule %}
+
+<div class="container mt-4">
+    <h2>Schedule</h2>
+    <div class="row">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Departure Station</th>
+                    <th scope="col">Ending Station</th>
+                    <th scope="col">Departure Time</th>
+                    <th scope="col">Arrival Time</th>
+                    <th scope="col">Total Seats</th>
+                    <th scope="col">Reserved Seats</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if trips %}
+                    {% for trip in trips %}
+                    <tr>
+                        <th scope="row">{{ forloop.counter }}</th>
+                        <td>{{ trip.departure_Station }}</td>
+                        <td>{{ trip.ending_Station }}</td>
+                        <td>{{ trip.departure_Time }}</td>
+                        <td>{{ trip.arrival_Time }}</td>
+                        <td>{{ trip.total_Seats }}</td>
+                        <td>{{ trip.reserved_Seats }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center">No trips available.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock schedule %}

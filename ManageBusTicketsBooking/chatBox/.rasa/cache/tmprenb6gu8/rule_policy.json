@@ -1,0 +1,26 @@
+{
+  "lookup": {
+    "rules": {
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"goodbye\"}}]": "utter_goodbye",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"goodbye\"}}, {\"prev_action\": {\"action_name\": \"utter_goodbye\"}, \"user\": {\"intent\": \"goodbye\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"slots\": {\"name\": [1.0]}, \"user\": {\"entities\": [\"name\"], \"intent\": \"provide_info\"}}]": "utter_ask_phone_number",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"slots\": {\"name\": [1.0]}, \"user\": {\"entities\": [\"name\"], \"intent\": \"provide_info\"}}, {\"prev_action\": {\"action_name\": \"utter_ask_phone_number\"}, \"slots\": {\"name\": [1.0]}, \"user\": {\"entities\": [\"name\"], \"intent\": \"provide_info\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"bot_challenge\"}}]": "utter_iamabot",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"bot_challenge\"}}, {\"prev_action\": {\"action_name\": \"utter_iamabot\"}, \"user\": {\"intent\": \"bot_challenge\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"slots\": {\"date\": [1.0]}, \"user\": {\"entities\": [\"date\"], \"intent\": \"provide_info\"}}]": "utter_ask_ticket_type",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"slots\": {\"date\": [1.0]}, \"user\": {\"entities\": [\"date\"], \"intent\": \"provide_info\"}}, {\"prev_action\": {\"action_name\": \"utter_ask_ticket_type\"}, \"slots\": {\"date\": [1.0]}, \"user\": {\"entities\": [\"date\"], \"intent\": \"provide_info\"}}]": "action_listen"
+    },
+    "rule_only_slots": [],
+    "rule_only_loops": [],
+    "rules_for_loop_unhappy_path": {},
+    "rules_not_in_stories": [
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"goodbye\"}}]",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"goodbye\"}}, {\"prev_action\": {\"action_name\": \"utter_goodbye\"}, \"user\": {\"intent\": \"goodbye\"}}]",
+      "predicting default action with intent restart",
+      "predicting default action with intent back",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"bot_challenge\"}}]",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"bot_challenge\"}}, {\"prev_action\": {\"action_name\": \"utter_iamabot\"}, \"user\": {\"intent\": \"bot_challenge\"}}]",
+      "predicting default action with intent session_start"
+    ]
+  }
+}
