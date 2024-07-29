@@ -1,0 +1,62 @@
+{% extends "app/base.html" %}
+{% load static %}
+
+{% block title %}
+        <title>Passenger list</title>   
+{% endblock title %}
+
+{% block passenger_list %}
+
+<div class="container mt-4">
+    {% if customer_info %}
+    <h2>Passenger list</h2>    
+    <h6>{{ customer_info.0.idTicket.idTrip.name }}</h6>
+    <a href="{% url 'download_customer_info' trip.id %}" class="btn btn-primary">Download Customer Info</a>
+
+    <div class="row">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">User Name</th>
+                    <th scope="col">Full Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Phone Number</th>
+                    <th scope="col">Seat Number</th>
+                    {% comment %} <th scope="col">Arrival Time</th> {% endcomment %}
+                    {% comment %} <th scope="col">Total Seats</th> {% endcomment %}
+                    {% comment %} <th scope="col">Reserved Seats</th> {% endcomment %}
+                </tr>
+            </thead>
+            <tbody>
+                        {% for customer in customer_info %}
+                            <tr>
+                                <th scope="row">{{ forloop.counter }}</th>
+                                <td>{{ customer.name_Customer }}</td>
+                                <td> {{ customer.idCustomer.last_name }} {{ customer.idCustomer.first_name }} </td>
+                                <td>{{ customer.idCustomer.email }}</td>
+                                <td>{{ customer.phone_Customer }}</td>
+                                <td>{{ customer.idTicket.idSeatNumber.seat_number}}</td>  
+                            </tr>
+                        {% endfor %}
+                {% else %}
+                    <tr>
+                        <th colspan="4" class="text-center">No passengers available.</th>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    <div class="row justify-content-center pt-2">
+        <div class="col-auto action-link-wrap">
+            <a onclick="history.back(-1)" class="btn btn-outline-primary me-2">
+                <i class="bi bi-arrow-left"></i> Go Back
+            </a>
+            <a href="{% url 'home' %}" class="btn btn-primary">
+                Go to Home Page <i class="bi bi-house"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock passenger_list %}

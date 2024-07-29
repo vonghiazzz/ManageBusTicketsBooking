@@ -4,48 +4,42 @@ from django.contrib.admin.actions import delete_selected
 from django.utils import timezone
 from datetime import datetime
 from django.contrib.auth.hashers import make_password
-
-from .models import Booking, Ticket, Bus  # Ensure Bus is imported
-
 from django.contrib.auth.models import Group, Permission
-
 from django.contrib.auth.forms import UserCreationForm
-
-
-
-#Thêm trường khác vào bảng
 from django.utils.html import mark_safe
+from django.shortcuts import redirect
+# from .forms import FeedbackForm  # Import từ forms.py
+
 
 # django-ckeditor
-from django import forms
-from ckeditor_uploader.widgets import CKEditorUploadingWidget
+# from ckeditor_uploader.widgets import CKEditorUploadingWidget
 
 
-
-# class CustomUserCreationForm(UserCreationForm):
-#     phoneNumber = forms.CharField(max_length=10, required=True)
-#     class Meta:
-#         model = User
-#         fields = ('phoneNumber')
 
 class CreateCustomerForm(UserCreationForm):
     class Meta:
         model = Customer
         fields = ['username','email','first_name','last_name','password1','password2','phone_Number']
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise ValidationError("User with this Email already exists!")
+        return email
 
+    
 
-# Đè lại form Bus để sửa 
+# Đè lại form Bus để sửa    
 class BusForm(forms.ModelForm):
-    #đè lại trường vehicleCondition để có form làm việc giống word
+    # #đè lại trường vehicleCondition để có form làm việc giống word
     # vehicleCondition=forms.CharField(widget=CKEditorUploadingWidget)
-    def __init__(self, *args, **kwargs):
-        super(BusForm, self).__init__(*args, **kwargs)
-        # Ghi đè thuộc tính widget cho trường 'vehicleCondition'
-        self.fields['vehicle_Condition'].widget = CKEditorUploadingWidget()
+    # def __init__(self, *args, **kwargs):
+    #     super(BusForm, self).__init__(*args, **kwargs)
+    #     # Ghi đè thuộc tính widget cho trường 'vehicleCondition'
+    #     self.fields['vehicle_Condition'].widget = CKEditorUploadingWidget()
 
 
     class Meta:
-        modes= Bus 
+        model= Bus 
         fields='__all__'
         labels = {
             'vehicle_Condition': 'Vehicle Condition', # Đặt tên mặc định cho trường 'name'
@@ -66,12 +60,12 @@ class BusAdmin(admin.ModelAdmin):
         }
     form = BusForm
     #Xuất ra trong trang quản lý admin của Ticket
-    list_display=["id","created_date","id_Driver","active"] 
+    list_display=["id","vehycle_number","created_date","id_Driver","active"] 
     #Chức năng search sẽ search được những nội dung dưới
-    search_fields= ["created_date"] 
+    search_fields= ["created_date","vehycle_number"] 
     #Show ra những filter của Ticket
     list_filter = ["active"]
-    fields = ['active','id_Driver','idType', 'vehicle_Condition']
+    fields = ['vehycle_number','active','id_Driver','idType', 'vehicle_Condition']
     # readonly_fields = ["reserved_Seats","total_Seats"]  
 
 class CustomerAdmin(admin.ModelAdmin):
@@ -81,7 +75,7 @@ class CustomerAdmin(admin.ModelAdmin):
     search_fields= ["username","email"] 
     #Show ra những filter của Ticket
     # list_filter = ["idRole"]
-    readonly_fields = ["last_login","date_joined","img", "point","password"]  
+    readonly_fields = ["last_login","date_joined","img", "point"]  
     fieldsets = (
         ('Account', {'fields': ('username', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name', 'email', 'img','avatar','phone_Number','point')}),
@@ -155,13 +149,42 @@ class UserAdmin(admin.ModelAdmin):
         if 'password' in form.cleaned_data:
             obj.set_password(form.cleaned_data['password'])
         super().save_model(request, obj, form, change)
-    
 
+
+
+
+
+class FeedbackForm(forms.ModelForm):
+    class Meta:
+            model= Feedback 
+            fields='__all__'
+            labels = {
+                'feedback_date': 'Date time', # Đặt tên mặc định cho trường 'name'
+                'idTrip':'ID Trip',
+            }
+
+class FeedbackAdmin(admin.ModelAdmin):
+    class Media: #Thêm css
+        css={
+            # 'all':('/static/css/main.css',) 
+        }
+        js={
+            # 'all':('/static/css/main.css',) 
+        }
+    form = FeedbackForm
+    list_display=["id","feedback_date","idTrip","user"] 
+    # list_display=["id","feedback_date","idBooking","user"] 
+
+    # list_filter = ["active"]
+    readonly_fields=["feedback_date"]
+    
+    def add_view(self, request, form_url='', extra_context=None):
+        return redirect('/feedback/')  
 
 
 class TickForm(forms.ModelForm):
     class Meta:
-            modes= Bus 
+            model= Ticket 
             fields='__all__'
             labels = {
                 'img': 'Image', # Đặt tên mặc định cho trường 'name'
@@ -216,8 +239,6 @@ class TickAdmin(admin.ModelAdmin):
 
 
 class BookAdmin(admin.ModelAdmin):
-    
-    #Thêm css,js cho Ticket
     class Media: #Thêm css
         css={
             # 'all':('/static/css/main.css',) 
@@ -225,39 +246,7 @@ class BookAdmin(admin.ModelAdmin):
         js={
             # 'all':('/static/css/main.css',) 
         }
-    # def delete_selected(self, request, queryset):
-    #     # Bỏ qua hành động xóa mặc định bằng cách không gọi hàm delete_selected mặc định
-    #     pass
-    # Define the custom action function
-    # actions = ['delete_selected_bookings']
-
     actions = ['delete_selected']
-    # def delete_selected(self, request, queryset):
-    #     for booking in queryset:
-    #         if booking.id:  # Kiểm tra xem booking có được chọn không
-    #             old_ticket = booking.idTicket
-    #             print('old_ticket: ', old_ticket)
-    #             booking.delete()
-    #             if old_ticket:
-    #                 old_ticket.status = False
-    #                 old_ticket.save()
-    #             # Cập nhật số ghế đã đặt cho xe buýt tương ứng
-    #             if old_ticket.idTrip:
-    #                 trip = old_ticket.idTrip
-    #             else:
-    #                 return
-    #             if trip:
-    #                 bus = trip.id_Buses
-    #                 if bus:
-    #                     bus.reserved_Seats = Ticket.objects.filter(idTrip__id_Buses=bus, status=True).count()
-    #                     # print('bus.reserved_Seats: ',bus.reserved_Seats)
-
-    #                     Bus.objects.filter(pk=bus.pk).update(reserved_Seats=bus.reserved_Seats)
-    #                     # print('After update bus.reserved_Seats: ',bus.reserved_Seats)
-    #             # else:
-    #             #     # print(f"No ticket found for booking {booking.id}")
-    #             #     return
-
     def delete_selected(self, request, queryset):
         for booking in queryset:
             if booking.id:
@@ -290,13 +279,22 @@ class BookAdmin(admin.ModelAdmin):
     
     # form = TickForm
     #Xuất ra trong trang quản lý admin của Ticket
-    list_display=["id","idTicket","bookingDate","idCustomer","status"] 
+    list_display=["id","idTicket","idTrip_info","bookingDate","idCustomer","status"] 
     #Chức năng search sẽ search được những nội dung dưới
     search_fields= ["idTicket__name", "bookingDate"] 
     #Show ra những filter của Ticket
     list_filter = ["status"]
+    # def idTrip(self, obj):
+    #     return obj.idTicket.idTrip.id + obj.idTicket.idTrip if obj.idTicket and obj.idTicket.idTrip else "-"
+    # idTrip.short_description = 'Trip Name'
 
-
+    def idTrip_info(self, obj):
+        if obj.idTicket and obj.idTicket.idTrip:
+            trip_id = obj.idTicket.idTrip.id
+            trip_name = obj.idTicket.idTrip
+            return f"{trip_id} - {trip_name}"
+        return "-"
+    idTrip_info.short_description = 'Trip Info'
 class SeatNumberAdminForm(forms.ModelForm):
     class Meta:
         model = SeatNumber
@@ -458,12 +456,16 @@ class TripAdmin(admin.ModelAdmin):
 # class TripAdmin(admin.ModelAdmin):
 #     inlines = [BusInline]
 
-
 # Custom admin site
 class AppAdminSite(admin.AdminSite):
     site_header = "Bus ticket Management"
- 
+    site_title = 'Admin Portal'
+    index_title = 'Welcome to manage page'
+
+
 admin_site = AppAdminSite('myapp')
+
+admin_site.index_template = 'app/admin/custom_admin.html'
 
 # Register your models here.
 # admin.site.register(Role, RoleAdmin)
@@ -477,7 +479,6 @@ admin_site = AppAdminSite('myapp')
 
 # Register your models here.    
 # admin_site.register(Role, RoleAdmin)
-
 admin_site.register(Driver,DriverAdmin)
 admin_site.register(Customer,CustomerAdmin)
 admin_site.register(Bus,BusAdmin)
@@ -488,6 +489,8 @@ admin_site.register(Ticket, TickAdmin)
 admin_site.register(Booking,BookAdmin)
 admin_site.register(User, UserAdmin)
 admin_site.register(Route, RouteAdmin)
+admin_site.register(Feedback, FeedbackAdmin)
+
 admin_site.register(Group)
 admin_site.register(Permission)
 

@@ -1,0 +1,33 @@
+<!-- templates/admin/custom_admin.html -->
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <style>
+        .custom-buttons {
+            display: flex;
+            gap: 10px; /* Khoảng cách giữa các nút */
+        }
+        .custom-buttons .changelink {
+            padding: 5px 10px;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-decoration: none;
+        }
+    </style>
+{% endblock %}
+
+{% block sidebar %}
+    {{ block.super }}
+    <div class="module">
+        <div class="custom-buttons">
+            <a href="{% url 'home' %}" class="changelink">{% trans "Back home of website" %}</a>
+            <a href="{% url 'feedbackAdmin' %}" class="changelink">{% trans "FeedBack" %}</a>
+            <a href="{% url 'statistics' %}" class="changelink">{% trans "Statistics" %}</a>
+            <a href="{% url 'scheduleDriver' %}" class="changelink">{% trans "Schedule Driver" %}</a>
+
+        </div>
+    </div>
+{% endblock %}

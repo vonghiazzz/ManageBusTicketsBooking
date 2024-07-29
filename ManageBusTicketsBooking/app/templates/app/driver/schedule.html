@@ -2,13 +2,24 @@
 {% load static %}
 
 {% block title %}
-    <title>Schedule Page</title>
+    {% if history %}
+        <title>History page</title>
+    {% else %}
+        <title>Schedule Page</title>
+    {% endif %}
 {% endblock title %}
 
 {% block schedule %}
 
 <div class="container mt-4">
-    <h2>Schedule</h2>
+    
+    {% if history %}
+        <h2>History</h2>
+    {% else %}
+        <h2>Schedule</h2>
+    {% endif %}
+
+
     <div class="row">
         <table class="table table-striped">
             <thead>
@@ -20,6 +31,9 @@
                     <th scope="col">Arrival Time</th>
                     <th scope="col">Total Seats</th>
                     <th scope="col">Reserved Seats</th>
+                    <th scope="col">Action</th> 
+                    <th scope="col">Report</th>
+
                 </tr>
             </thead>
             <tbody>
@@ -33,15 +47,32 @@
                         <td>{{ trip.arrival_Time }}</td>
                         <td>{{ trip.total_Seats }}</td>
                         <td>{{ trip.reserved_Seats }}</td>
+                        <td>
+                            <a href="{% url 'passengerList' trip.id %}" class="btn btn-primary">View Passengers</a>
+                        </td> 
+                        <td>
+                            <a href="{% url 'reportVehicle' trip.id_Buses.id trip.id %}" class="btn btn-primary">Report Vehicle</a>
+                        </td>
+
                     </tr>
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="7" class="text-center">No trips available.</td>
+                        <td colspan="9" class="text-center">No trips available.</td>
                     </tr>
                 {% endif %}
             </tbody>
         </table>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-auto action-link-wrap">
+            <a onclick="history.back(-1)" class="btn btn-outline-primary me-2">
+                <i class="bi bi-arrow-left"></i> Go Back
+            </a>
+            <a href="{% url 'home' %}" class="btn btn-primary">
+                Go to Home Page <i class="bi bi-house"></i>
+            </a>
+        </div>
     </div>
 </div>
 

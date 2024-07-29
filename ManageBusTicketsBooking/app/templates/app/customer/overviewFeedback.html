@@ -1,0 +1,38 @@
+{% extends "app/base.html" %}
+{% load static %}
+
+{% block title %}
+    <title>Feedback page</title>
+{% endblock title %}
+
+{% block feedback %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/feedbackCustomer.css' %}">
+
+<div class="container mt-4">
+    <h2>Feedback page</h2>
+    
+    <!-- Hiển thị feedback cũ -->
+    {% if feedbacks %}
+        <div class="px-5">
+            <h5>All Feedbacks</h5>
+            {% for feedback in feedbacks %}
+                <div class="mx-5 feedback-item {% if feedback.user and feedback.user.username == 'admin' %}admin{% else %}customer{% endif %}">
+                    <p>{{ feedback.content }}</p>
+                    <small>
+                        {% if feedback.user %}
+                            {{ feedback.user.username }} 
+                        {% else %}
+                            Unknown User
+                        {% endif %}
+                        on {{ feedback.feedback_date }}
+                    </small>
+                    <p>Trip: {{ feedback.idTrip.departure_Station }} - {{ feedback.idTrip.ending_Station }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No find the feedbacks!</p>
+    {% endif %}
+
+</div>
+{% endblock feedback %}

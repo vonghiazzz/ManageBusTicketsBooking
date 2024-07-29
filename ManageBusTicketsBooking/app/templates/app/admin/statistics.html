@@ -1,0 +1,162 @@
+{% extends 'app/base.html' %}
+{% load static %}
+
+{% block title %}
+    <title>Statistics Page</title>
+{% endblock title %}
+
+{% block main-content %}
+<div class="container">
+    <h2>Statistics</h2>
+    <form id="month-year-form" method="GET" action="{% url 'statistics' %}">
+        <label for="month-year">Chọn tháng, năm:</label>
+        <input type="month" id="month-year" name="month-year">
+        <button type="submit" class="btn btn-primary">Ok</button>
+    </form>
+
+    <div id="container-bookings" style="width:100%; height:400px;"></div>
+    <div id="container-revenue" style="width:100%; height:400px;"></div> 
+    <div id="container-total" style="width:100%; height:400px;"></div> 
+
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const initialData = {{ data|safe }};
+            const initialData1 = {{ data1|safe }};
+            const monthYearElement = document.getElementById('month-year');
+            
+            function initializeCharts(tripNames, currentMonthRevenue, currentMonthBookings, currentMonthTotal) {
+                Highcharts.chart('container-total', {
+                    chart: { type: 'column' },
+                    title: { text: 'Tổng thu nhập của tháng hiện tại' },
+                    xAxis: { categories: ['Doanh thu'] },
+                    yAxis: { min: 0, title: { text: 'Tiền ($)' } },
+                    series: [{ name: 'Tháng hiện tại ($)', data: currentMonthTotal }],
+                    exporting: { enabled: true }
+                });
+    
+                Highcharts.chart('container-bookings', {
+                    chart: { type: 'column' },
+                    title: { text: 'Amount of booking in trips on this month' },
+                    xAxis: { categories: tripNames, title: { text: 'Trips' } },
+                    yAxis: { min: 0, title: { text: 'Amount of booking in trip' } },
+                    series: [{ name: 'Amount of booking in this month', data: currentMonthBookings }],
+                    exporting: { enabled: true }
+                });
+    
+                Highcharts.chart('container-revenue', {
+                    chart: { type: 'line' },
+                    title: { text: 'Doanh thu theo chuyến đi' },
+                    xAxis: { categories: tripNames, title: { text: 'Chuyến đi' } },
+                    yAxis: { min: 0, title: { text: 'Doanh thu' } },
+                    series: [{ name: 'Doanh thu tháng này', data: currentMonthRevenue }],
+                    exporting: { enabled: true }
+                });
+            }
+    
+            initializeCharts(
+                initialData.map(item => item.trip),
+                initialData.map(item => item.current_month_revenue),
+                initialData.map(item => item.current_month_bookings),
+                initialData1.map(item => item.current_month_total)
+            );
+    
+           
+            
+           
+
+            monthYearElement.addEventListener('change', function () {
+                const [selectedYear, selectedMonth] = this.value.split('-');
+                fetchDataAndUpdateCharts(selectedMonth, selectedYear);
+                console.log("abx")
+                dataTime(selectedYear, selectedMonth);
+            });
+        
+            function dataTime(selectedYear, selectedMonth){
+                let month = (selectedMonth.getMonth() + 1).toString().padStart(2, '0');
+                monthYearElement.value = `${selectedYear}-${month}`;
+            }
+        });
+    </script>
+    
+    
+    {% comment %} <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initial chart rendering with initial data from the server
+            const tripNames = {{ data|safe }}.map(item => item.trip);
+            const currentMonthRevenue = {{ data|safe }}.map(item => item.current_month_revenue);
+            const currentMonthBookings = {{ data|safe }}.map(item => item.current_month_bookings);
+            const currentMonthTotal = {{ data1|safe }}.map(item => item.current_month_total);
+
+            function initializeCharts(tripNames, currentMonthRevenue, currentMonthBookings, currentMonthTotal) {
+                Highcharts.chart('container-total', {
+                    chart: { type: 'column' },
+                    title: { text: 'Tổng thu nhập của tháng hiện tại' },
+                    xAxis: { categories: ['Doanh thu'] },
+                    yAxis: { min: 0, title: { text: 'Tiền ($)' } },
+                    series: [{ name: 'Tháng hiện tại ($)', data: currentMonthTotal }],
+                    exporting: { enabled: true }
+                });
+
+                Highcharts.chart('container-bookings', {
+                    chart: { type: 'column' },
+                    title: { text: 'Amount of booking in trips on this month' },
+                    xAxis: { categories: tripNames, title: { text: 'Trips' } },
+                    yAxis: { min: 0, title: { text: 'Amount of booking in trip' } },
+                    series: [{ name: 'Amount of booking in this month', data: currentMonthBookings }],
+                    exporting: { enabled: true }
+                });
+
+                Highcharts.chart('container-revenue', {
+                    chart: { type: 'line' },
+                    title: { text: 'Doanh thu theo chuyến đi' },
+                    xAxis: { categories: tripNames, title: { text: 'Chuyến đi' } },
+                    yAxis: { min: 0, title: { text: 'Doanh thu' } },
+                    series: [{ name: 'Doanh thu tháng này', data: currentMonthRevenue }],
+                    exporting: { enabled: true }
+                });
+            }
+
+            // Initial chart rendering
+            initializeCharts(tripNames, currentMonthRevenue, currentMonthBookings, currentMonthTotal);
+
+            function fetchDataAndUpdateCharts(month, year) {
+                fetch(`/statistics/?month=${month}&year=${year}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tripNames = data.data.map(item => item.trip);
+                        const currentMonthRevenue = data.data.map(item => item.current_month_revenue);
+                        const currentMonthBookings = data.data.map(item => item.current_month_bookings);
+                        const currentMonthTotal = data.data1.map(item => item.current_month_total);
+                        
+                        initializeCharts(tripNames, currentMonthRevenue, currentMonthBookings, currentMonthTotal);
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+            const now = new Date();
+            const year = now.getFullYear();
+            let month = (now.getMonth() + 1).toString().padStart(2, '0');
+            document.getElementById('month-year').value = `${year}-${month}`;
+
+            document.getElementById('month-year').addEventListener('change', function () {
+                const [selectedYear, selectedMonth] = this.value.split('-');
+                document.getElementById('month-year').value = `${selectedYear}-${selectedMonth}`;
+                fetchDataAndUpdateCharts(selectedMonth, selectedYear);
+            });
+
+        });
+    </script> {% endcomment %}
+
+    <div class="row justify-content-center">
+        <div class="col-auto action-link-wrap">
+            <a onclick="history.back(-1)" class="btn btn-outline-primary me-2">
+                <i class="bi bi-arrow-left"></i> Go Back
+            </a>
+            <a href="{% url 'home' %}" class="btn btn-primary">
+                Go to Home Page <i class="bi bi-house"></i>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock main-content %}

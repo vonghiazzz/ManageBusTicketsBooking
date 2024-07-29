@@ -8,41 +8,83 @@
 {% block history_content %}
 <div class="container">
     <h2>Booking History</h2>
-    {% if booked_tickets %}
-        <div class="row">
-            {% for item in booked_tickets %}
-                <div class="col-md-4 mb-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Ticket ID: {{ item.ticket.id }}</h5>
-							{% comment %} <h5 class="card-title">Ticket: {{ item.ticket.img }}</h5> {% endcomment %}
 
-                            {% comment %} <h5 class="card-title">Image: <img src="{%static '{{ticket.img.url }}' %}"> </h5>
-							<h5 class="card-title">Image: {%static '{{item.ticket.img }}' %} </h5> {% endcomment %}
-							<h5 class="card-title">Image: 
-								{% if item.ticket.img %}
-									<img class="rounded-circle mt-5" width="220px" src="{% static item.ticket.img.url %}" alt="{{ item.ticket.name }}">
-								{% else %}
-									<h5>Not found image</h5>
-								{% endif %} 
-							</h5>
-
-							
-		
-                            <h5 class="card-title">Ticket Name: {{ item.ticket.name }}</h5>
-                            <p class="card-text">Seat Number: {{ item.ticket.idSeatNumber }}</p>
-                            <p class="card-text">Trip Name: {{ item.ticket.idTrip.name }}</p>
-                            <h5 class="card-title">Ticket Status: {{ item.ticket.status }}</h5>
-                            <h5 class="card-title">Booking Status: {{ item.booking_status }}</h5>
-                            <!-- Các thông tin khác về vé -->
-                        </div>
-                    </div>
+    <!-- Modal for Notifications -->
+    {% if request.GET.message %}
+    <div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="notificationModalLabel">Notification</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-            {% endfor %}
+                <div class="modal-body text-center">
+                    {{ request.GET.message }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
         </div>
-    {% else %}
-        <p>No tickets have been booked yet.</p>
+    </div>
     {% endif %}
+
+    {% if trips_grouped_by_date %}
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th scope="col" class="text-center">ID Ticket</th>
+                    <th scope="col" class="text-center">Trip</th>
+                    <th scope="col" class="text-center">Departure Time</th>
+                    <th scope="col" class="text-center">Arrival Time</th>
+                    <th scope="col" class="text-center">Seat Number</th>
+                    <th scope="col" class="text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in trips_grouped_by_date %}
+                <tr>
+                    <th scope="row" class="text-center">{{ item.ticket.id }}</th>
+                    <td class="text-center">{{ item.ticket.idTrip.name }}</td>
+                    <td class="text-center">{{ item.ticket.idTrip.departure_Time }}</td>
+                    <td class="text-center">{{ item.ticket.idTrip.arrival_Time }}</td>
+                    <td class="text-center">{{ item.ticket.idSeatNumber.seat_number }}</td>
+                    <td class="text-center">
+                        {% if not item.is_past_trip %}
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal-{{ item.ticket.id }}">
+                            <i class="bi bi-x-circle-fill"></i> Ticket Cancellation
+                        </button>
+                        <div class="modal fade" id="exampleModal-{{ item.ticket.id }}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h1 class="modal-title fs-5" id="exampleModalLabel">Ticket Cancellation</h1>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body d-flex justify-content-center">
+                                        <p>Do you sure you want to cancel this ticket?</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        <form action="{% url 'history' %}" method="POST">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="ticket_id" value="{{ item.ticket.id }}">
+                                            <button type="submit" class="btn btn-primary">Confirm</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+    <p class="text-center">No booking history available.</p>
+    {% endif %}
+    
     <div class="row justify-content-center">
         <div class="col-auto action-link-wrap">
             <a onclick="history.back(-1)" class="btn btn-outline-primary me-2">
@@ -53,10 +95,17 @@
             </a>
         </div>
     </div>
-
 </div>
 
-<br><br><br>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var notificationModal = new bootstrap.Modal(document.getElementById('notificationModal'), {
+            keyboard: false
+        });
+        if (document.querySelector('#notificationModal')) {
+            notificationModal.show();
+        }
+    });
+</script>
 
-<br><br><br>
 {% endblock history_content %}

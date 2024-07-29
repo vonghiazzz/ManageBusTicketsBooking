@@ -187,6 +187,8 @@ class ActionAskPrice(Action):
         start = tracker.get_slot('departure')
         end = tracker.get_slot('destination')
         # dispatcher.utter_message(text=f"departure is {start} to destination is {end}.")
+        print("start: ",start)
+        print("end: ",end)
 
         # Kết nối tới database
         database_path = r'D:\AllProject\Website\Python\Web\Final\ManageBusTicketsBooking\db.sqlite3'

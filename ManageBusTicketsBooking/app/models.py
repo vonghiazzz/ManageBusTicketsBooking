@@ -43,6 +43,8 @@ def validate_phone_number(value):
 class User(AbstractUser):
     class Meta: 
         ordering=["id"]
+        unique_together=["email"]
+    email = models.EmailField(unique=True)  # Đảm bảo trường email là duy nhất
     phone_Number = models.CharField(max_length=10, null=True, blank=True, validators=[validate_phone_number])
     avatar = models.ImageField(upload_to='uploads/%Y/%m', default=None, null=True, blank=True) 
     # groups = models.ManyToManyField(
@@ -182,6 +184,7 @@ class Trip(ItemBase):
         unique_together = ('departure_Station','departure_Time','id_Buses')
         # unique_together = ('id_Buses', 'departure_Time')
         # unique_together =('id','id_Buses')
+
     price = models.FloatField(validators=[MinValueValidator(50), MaxValueValidator(200)],default=50)  # Giới hạn giá trị từ 50 đến 200
     distance = models.FloatField(validators=[MinValueValidator(0), MaxValueValidator(3000)],default=0)
     departure_Station = models.CharField(max_length =100, null = False, blank=False)
@@ -197,7 +200,7 @@ class Trip(ItemBase):
     def name(self):
         return str(self.departure_Station)+ '-'+str(self.ending_Station)
     def __str__(self) :
-        return str(self.departure_Station)+ '-'+str(self.ending_Station)+' ('+str(self.departure_Time)+')'
+        return str(self.departure_Station)+ '-'+str(self.ending_Station)
 
 
 
@@ -218,6 +221,24 @@ class Trip(ItemBase):
 
         if self.id_Buses and self.pk:
             trip_name = f"{self.departure_Station} - {self.ending_Station} - {self.departure_Time}"
+            bus = self.id_Buses
+            driver = bus.id_Driver 
+
+            if driver:
+                if self.hours:
+                    hours_parts = self.hours.split(':')
+                    hours = int(hours_parts[0])
+                    minutes = int(hours_parts[1])
+                    total_hours = hours + minutes / 60.0
+                else:
+                    total_hours = 0
+
+                # # Cập nhật self.hours để lưu dưới dạng chuỗi HH:MM
+                # self.hours = f"{int(total_hours):02d}:{int((total_hours - int(total_hours)) * 60):02d}"
+
+                driver.totalDrivingTime += total_hours
+                driver.totalSalary += self.distance / 50 * 10
+                driver.save()
 
         for i in range(1, self.total_Seats + 1):
             unique_ticket_name = f"{trip_name} - Seat {i} - Id Bus {self.id_Buses}"
@@ -243,8 +264,10 @@ class Bus(ItemBase):
         class Meta: 
             ordering=["id"]
             db_table = 'Buses'  # Đặt tên bảng là "Buses"
+            unique_together=['vehycle_number']
+        vehycle_number=models.CharField(null=False, blank=False, max_length=8)
         idType = models.ForeignKey(Type,related_name='Buss', on_delete= models.SET_NULL, null=True,blank=False)
-        vehicle_Condition =  RichTextField() 
+        vehicle_Condition =  models.TextField(null=True,blank=True) 
         id_Driver = models.ForeignKey(
                     Driver, 
                     on_delete= models.SET_NULL, null=True,
@@ -301,15 +324,6 @@ class Ticket(ItemBase):
     idTrip = models.ForeignKey(Trip,related_name='Tickets', on_delete=models.CASCADE, null=True,blank=True)
     def __str__(self) :
          return str(self.id)
-    
-
-    # def save(self, *args, **kwargs):
-    #     if not self.pk:  # Chỉ kiểm tra khi tạo Ticket mới
-    #         trip_ids = [trip.id for trip in self.idBus.trip.all()]
-    #         if Ticket.objects.filter(name=self.name, idBus__trip__id__in=trip_ids).exists():
-    #             raise ValidationError("Tên vé đã tồn tại trong một hoặc nhiều chuyến đi.")
-    #     super().save(*args, **kwargs)
-
     def update_status(self):
         # Kiểm tra xem có booking nào liên quan đến Ticket không
         has_booking = Booking.objects.filter(idTicket=self).exists() 
@@ -370,23 +384,28 @@ class Booking(models.Model):
 
     
 
-
-
-
-
-
-
+# class Feedback(models.Model):
+#     class Meta: 
+#         ordering = ["id"]
+#     content = models.CharField(max_length=500, null=False, blank=False)
+#     feedback_date = models.DateTimeField(auto_now_add=True)
+#     idBooking = models.ForeignKey(Booking, related_name='feedbacks', on_delete=models.CASCADE, null=False, blank=False)
+#     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)  # Thêm trường này để lưu trữ thông tin người dùng
 
     
+    
+#     def __str__(self):
+#         return f"Feedback for Booking {self.idBooking.id}"
 
- 
-
-
-
-
-
-
-
-
-
- 
+class Feedback(models.Model):
+    class Meta: 
+        ordering = ["id"]
+    content = models.CharField(max_length=500, null=False, blank=False)
+    feedback_date = models.DateTimeField(auto_now_add=True)
+    idTrip = models.ForeignKey(Trip, related_name='feedbacks', on_delete=models.CASCADE, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)  # Lưu trữ thông tin người dùng
+    
+    def __str__(self):
+        trip_info = f"Trip {self.idTrip.id}" if self.idTrip else "No Trip"
+        user_info = self.user.username if self.user else "Unknown User"
+        return f"Feedback for {trip_info} by {user_info}"

@@ -144,7 +144,7 @@
   {% comment %} <div id="profile-info" class="text-center h6 fw-bold mb-5 mx-1 mx-md-4 mt-4"></div> {% endcomment %}
 
       <div class="row py-3 text-center" style="width:100%">
-        <h2>Các Tuyến Xe</h2>
+        <h2>Các Tuyến Xe Trong 3 ngày tới</h2>
       </div>
       <div class="row py-3" style="width:100%">
 
@@ -157,6 +157,8 @@
                 <p><strong>Ending Station:</strong> {{ trip.ending_Station }}</p>
                 <p>{{trip.id}}</p>
                 <a class="btn btn-outline-secondary add-btn update-cart" href="{% url 'booking' trip.id %}">Booking</a>
+                <a class="btn btn-outline-secondary add-btn update-cart" href="{% url 'feedback' trip.id %}">View Feedback</a>
+
                 <h4 style="display: inline-block; float: right" ><strong>${{trip.price | floatformat:2}}</strong></h4>
             </div>
         </div>  
@@ -164,6 +166,11 @@
         {% endfor %}
       </div> 
 
+      {% comment %} three_days_from_now = timezone.now() + timedelta(days=3)
+
+      hcm = Trip.objects.filter(id_Route__startPoint='Thành phố Hồ Chí Minh', departure_Time__gt=three_days_from_now)
+      dl = Trip.objects.filter(id_Route__startPoint='Đà Lạt', departure_Time__gt=three_days_from_now)
+      vt = Trip.objects.filter(id_Route__startPoint='Bà Rịa - Vũng Tàu', departure_Time__gt=three_days_from_now) {% endcomment %}
 
     <section class="py-6 text-center sm:px-10">
       <div class="container">

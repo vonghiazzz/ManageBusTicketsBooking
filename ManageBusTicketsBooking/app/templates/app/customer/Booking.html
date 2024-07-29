@@ -6,42 +6,7 @@
 {% endblock title %}
 
 {% block content_checkout %}
-<style>
-    .seat {
-        position: relative;
-        display: inline-block;
-        cursor: pointer;
-    }
-    .seat img {
-        display: block;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .seat span {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        color: black;
-        font-weight: bold;
-        pointer-events: none;
-        font-size: 10px;
-    }
-    .seat:hover img {
-        transform: scale(1.1);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    }
-    .seat.selected img {
-        transform: scale(1.1);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        border: 2px solid green; /* Change as needed for the selected state */
-        opacity: 0.5; /* Mờ cho ghế đã chọn */
-    }
-    .seat.disabled {
-        cursor: not-allowed;
-        opacity: 0.1;
-    }
-</style>
-
+<link rel= "stylesheet" type="text/css" href="{% static "css/booking.css" %}">
 <div class="row py-3" style="width:100%;">
     <div class="col-lg-6">
         <div class="box-element" id="form-wrapper">
@@ -180,12 +145,21 @@
             </div>
             <div class="cart-row row">
                 <div class="col-md-6">
+                    <p><strong>Departure Time:</strong> {{ trip.departure_Time }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Arrival Time:</strong> {{ trip.arrival_Time }}</p>
+                </div>
+            </div>
+            <div class="cart-row row">
+                <div class="col-md-6">
                     <p><strong>Distance:</strong> {{ trip.distance }}km</p>
                 </div>
                 <div class="col-md-6">
                     <p><strong>Duration:</strong> {{ trip.hours }}h</p>
                 </div>
             </div>
+           
             <div class="cart-row row">
                 <div class="col-md-6">
                     <p><strong>Price:</strong> ${{ trip.price }}</p>
@@ -195,6 +169,16 @@
                 </div>
             </div>
         </div>
+        {% comment %} <div class="row justify-content-start">
+            <div class="col-md-6">
+                <h5>Original Price: $<span id="original-price">{{ original_price }}</span></h5>
+                <h5>Discount: $<span id="discount-price">{{ discount_price }}</span></h5>
+                <h5>Total: $<span id="total-price">{{ total_price }}</span></h5>
+            </div>
+        </div> {% endcomment %}
+        {% comment %} <h5>Discount: $<span id="">{{discount_price}}</span></h5> {% endcomment %}
+        <h5>Discount: $<span id="discount_price">0</span></h5>
+
         <h5>Total: $<span id="total-price">0</span></h5>
         <div class="row justify-content-center">
             <div class="col-auto action-link-wrap">
@@ -215,11 +199,19 @@
         var selectedTickets = []; // Danh sách các vé đã chọn
         var maxSeats = 5;
         var ticketPrice = {{ trip.price }}; // Giá của một vé
-
+        var discountPrice = {{ discount_price }}; 
+        console.log("discountPrice: ",discountPrice)
         function updateSeatCount() {
             var selectedSeats = document.querySelectorAll(".seat.selected");
+            var totalDiscount= 0;
+            var discoutTicket= selectedSeats.length*10+discountPrice;
+            if (discoutTicket >= 100){
+               totalDiscount= 0.2 * ticketPrice *selectedSeats.length;}
+
             document.getElementById("selected-seats").textContent = selectedSeats.length;
-            document.getElementById("total-price").textContent = selectedSeats.length * ticketPrice;
+            document.getElementById("total-price").textContent = selectedSeats.length * ticketPrice -totalDiscount;
+            document.getElementById("discount_price").textContent = totalDiscount;
+
         }
 
         seats.forEach(function(seat) {
@@ -244,7 +236,7 @@
                             alert("You can select a maximum of 5 seats.");
                         }
                     }
-                    console.log(selectedTickets); // Debugging: check selectedTickets array in console
+                    //console.log(selectedTickets); // Debugging: check selectedTickets array in console
                 });
             }
         });

@@ -1,0 +1,23 @@
+.feedback-item {
+    margin-bottom: 20px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.feedback-item.admin {
+    background-color: #f0f0f0;
+    text-align: left;
+}
+
+.feedback-item.customer {
+    background-color: #d9edf7;
+    text-align: right;
+}
+
+.feedback-item p {
+    margin-bottom: 5px;
+}
+
+.feedback-item small {
+    color: #666;
+}

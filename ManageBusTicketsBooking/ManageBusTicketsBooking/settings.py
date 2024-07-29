@@ -17,7 +17,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # Thời gian session tồn tại tính bằng giây (ở đây là 6 phút)
-SESSION_COOKIE_AGE = 360
+SESSION_COOKIE_AGE = 3600
 
 # Xóa session khi đóng trình duyệt
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
@@ -49,14 +49,26 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
 
-    'ckeditor',
-    'ckeditor_uploader',
+    # 'ckeditor',
+    # 'ckeditor_uploader',
 
     'app',
     'oauth2_provider',
 
     'social_django',
+
 ]
+
+#Send email
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # SMTP server của nhà cung cấp email của bạn
+EMAIL_PORT = 587  # Cổng SMTP
+EMAIL_USE_TLS = True  # Sử dụng TLS
+EMAIL_HOST_USER = 'martbus.office@gmail.com'  # Địa chỉ email của bạn
+EMAIL_HOST_PASSWORD = 'pvic dqgw rfiy adta'  # Mật khẩu email của bạn
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -76,11 +88,12 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'ManageBusTicketsBooking.urls'
+import os
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -136,7 +149,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Ho_Chi_Minh'
 
 USE_I18N = True
 

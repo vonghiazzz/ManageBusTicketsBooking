@@ -1,0 +1,40 @@
+{% extends "app/base.html" %}
+{% load static %}
+
+{% block title %}
+    <title>Report Vehicle</title>
+{% endblock title %}
+
+{% block reportVehicle %}
+
+<style>
+    .form-group {
+        width: 100%; 
+    }
+
+    .form-group input, .form-group textarea, .form-group select {
+        width: 100%; 
+    }
+</style>
+<div class="container mt-4">
+    <h2>Report Vehicle</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ form.vehicle_Condition}}
+        </div>
+        <button style="visibility: {{status}}" type="submit" class="btn btn-primary">Submit</button>
+    </form>
+    <div class="row justify-content-center">
+        <div class="col-auto action-link-wrap">
+            <a onclick="history.back(-1)" class="btn btn-outline-primary me-2">
+                <i class="bi bi-arrow-left"></i> Go Back
+            </a>
+            <a href="{% url 'home' %}" class="btn btn-primary">
+                Go to Home Page <i class="bi bi-house"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock reportVehicle %}

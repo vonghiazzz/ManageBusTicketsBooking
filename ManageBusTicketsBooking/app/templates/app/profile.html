@@ -17,12 +17,18 @@
                 {% endif %}
 
                 <span class="font-weight-bold">{{ user_name }}</span>
+                {% if is_customer%}
+                <span class="font-weight-bold">Point: {{ point }}</span>
+                {%endif%}
+                {% if is_driver%}
+                <span class="font-weight-bold">Salary: {{ salary }}</span>
+                {%endif%}
                 <span class="text-black-50">{{ request.user.email }}</span>
             </div>
         </div>
 
         <div class="col-md-9 border-right">
-            <form method="post" enctype="multipart/form-data" class="p-3 py-5">
+            <form method="post" enctype="multipart/form-data" class="p-3 py-5" id="profileForm">
                 {% csrf_token %}
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h4 class="text-right">Profile Settings</h4>
@@ -35,8 +41,17 @@
                             <p class="alert alert-{{ message.tags }} text-center">{{ message }}</p>
                         {% endfor %}
                     </ul>
-                {% endif %}
+                    {% endif %}
 
+                    {% if form.errors %}
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <div class="alert alert-danger">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        {% endfor %}
+                    {% endif %}
                 </div>
                 <div class="row mt-2">
                     <div class="col-md-6">
@@ -53,11 +68,10 @@
                         <label class="labels">User name</label>
                         <input type="text" class="form-control" name="user_name" placeholder="User name" value="{{ user_name }}">
                     </div>
-                        <div class="col-md-6">
-                            <label for="avatar">Avatar:</label>
-                            <input type="file" id="avatar" name="avatar">
-                        </div>
-
+                    <div class="col-md-6">
+                        <label for="avatar">Avatar:</label>
+                        <input type="file" id="avatar" name="avatar">
+                    </div>
                 </div>
                 <div class="row mt-3">
                     <div class="col-md-6">
@@ -70,13 +84,14 @@
                     </div>
                 </div>
                 <div class="row mt-3">
-
-                    <div class="row mt-3">
+                    <div class="col-md-12">
+                        <div class="mt-5 text-center">
+                            <button class="btn btn-primary profile-button" type="submit">Save Profile</button>
+                            <a href="#" id="changePasswordBtn" class="btn btn-primary">
+                                Change password
+                            </a>
+                        </div>
                     </div>
-                    
-                </div>
-                <div class="mt-5 text-center">
-                    <button class="btn btn-primary profile-button" type="submit">Save Profile</button>
                 </div>
             </form>
             <div class="row justify-content-center">
@@ -89,10 +104,34 @@
                     </a>
                 </div>
             </div>
-        
         </div>
     </div>
-
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    document.getElementById("changePasswordBtn").addEventListener("click", function(e) {
+        e.preventDefault();
+        fetch("{% url 'send_otp_email' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}"
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = "{% url 'change_password' %}";
+            } else {
+                alert("Failed to send OTP. Please try again.");
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Failed to send OTP. Please try again.");
+        });
+    });
+});
+</script>
 
 {% endblock profile %}

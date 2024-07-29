@@ -185,7 +185,7 @@ nlu:
       - Tôi cần một vé loại [người lớn, giường, ghế](ticket_type)
       - Điểm xuất phát là [Đà Nẵng](departure), điểm đến là [Nha Trang](destination)
       - Tôi muốn đi từ [Cần Thơ](departure) đến [Phan Thiết](destination)
-      - Điểm xuất phát là [Đà Nẵng](departure)
+      - Điểm xuất phát là [Đà Lạt, Đà Nẵng](departure)
       - Điểm đến là [Nha Trang, Cần Thơ](destination)
       - [Nghĩa, Đạt, Phong, Lâm, Khang](name)
       - [0123456789](phone_number)

@@ -1,0 +1,33 @@
+{% extends "app/base.html" %}
+{% load static %}
+
+{% block title %}
+    <title>Confirm Page</title>
+{% endblock title %}
+
+{% block confirm %}
+<div class="container mt-4">
+    <h2>Payment Confirmation</h2>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <p><strong>Name:</strong> {{ name }}</p>
+    <p><strong>Phone number:</strong> {{ phone }}</p>
+    <h3>Selected tickets:</h3>
+    <ul>
+        {% for ticket in booked_tickets %}
+            <li>{{ ticket.idSeatNumber }} - {{ ticket.idTrip.departure_Station }} đến {{ ticket.idTrip.ending_Station }}</li>
+        {% endfor %}
+    </ul>
+    <div class="row justify-content-center">
+        <div class="col-auto action-link-wrap">
+            <a href="{% url 'home' %}" class="btn btn-primary">
+                Go to Home Page <i class="bi bi-house"></i>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock confirm %}

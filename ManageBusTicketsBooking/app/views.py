@@ -1,38 +1,525 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 import requests
 from .models import *
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate,login,logout
 from django.contrib import messages
 import logging
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 import json
 from django.contrib.auth import logout as auth_logout
-from .admin import CreateCustomerForm
+from .admin import CreateCustomerForm, BusForm
 from collections import defaultdict
 from django.shortcuts import render, HttpResponse
 from django.contrib.auth.decorators import login_required
+import csv
+from django.db.models import Subquery, OuterRef
 
 
+from django.db.models.functions import TruncMonth
+from django.db.models import Sum
 
 # Create your views here.
 logger = logging.getLogger('app')
 
+from dateutil.relativedelta import relativedelta
+from django.utils.timezone import now
+
+
+def scheduleDriver(request):
+    if request.user.is_authenticated:
+        user_not_login = "hidden"
+        user_login = "show"
+        is_driver = hasattr(request.user, 'driver')
+        if request.user.is_superuser:
+            current_time = timezone.now()
+            trips = Trip.objects.filter(departure_Time__gte=current_time)
+            context={
+                'trips':trips,
+                'user_not_login':user_not_login,
+                'user_login':user_login,
+                'is_driver':is_driver,
+            }
+            return render(request, 'app/admin/scheduleDriver.html', context)
 
 
 
 
-def chatBox(request):
-    return render(request, "app/chatRoom.html")
+# @login_required(login_url='/login/')
+# def statistics(request):
+#     if request.user.is_authenticated:
+#         user_not_login = "hidden"
+#         user_login = "show"
+#         is_driver = hasattr(request.user, 'driver')
+#         if request.user.is_superuser:
 
+#             trips = Trip.objects.all()
+#             data = []
+#             data1=[]
+        
+#             # Lấy ngày đầu tiên của tháng hiện tại và tháng trước đó
+#             current_month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+#             # last_month_start = (timezone.now() - relativedelta(months=1)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+#             for trip in trips:
+#                 # Đếm số lượng đặt chỗ cho mỗi chuyến đi trong tháng hiện tại và tháng trước đó
+#                 current_month_bookings = Booking.objects.filter(
+#                     idTicket__idTrip=trip,
+#                     bookingDate__gte=current_month_start,
+#                     bookingDate__lt=current_month_start + relativedelta(months=1)
+#                 ).count()
+#                 print(current_month_start)
+#                 print(current_month_start + relativedelta(months=1))
+#                 # last_month_bookings = Booking.objects.filter(
+#                 #     idTicket__idTrip=trip,
+#                 #     bookingDate__gte=last_month_start,
+#                 #     bookingDate__lt=last_month_start + relativedelta(months=1)
+#                 # ).count()
+
+#                 # Tính tổng doanh thu cho mỗi chuyến đi trong tháng hiện tại và tháng trước đó
+#                 current_month_revenue = Booking.objects.filter(
+#                     idTicket__idTrip=trip,
+#                     bookingDate__gte=current_month_start,
+#                     bookingDate__lt=current_month_start + relativedelta(months=1)
+#                 ).aggregate(total_revenue=Sum('idTicket__idTrip__price'))['total_revenue'] or 0
+
+#                 # last_month_revenue = Booking.objects.filter(
+#                 #     idTicket__idTrip=trip,
+#                 #     bookingDate__gte=last_month_start,
+#                 #     bookingDate__lt=last_month_start + relativedelta(months=1)
+#                 # ).aggregate(total_revenue=Sum('idTicket__idTrip__price'))['total_revenue'] or 0
+
+#                 data.append({
+#                         'trip': trip.name(),
+#                         'current_month_bookings': current_month_bookings,
+#                         # 'last_month_bookings': last_month_bookings,
+#                         'current_month_revenue': current_month_revenue,
+#                         # 'last_month_revenue': last_month_revenue
+#                     })
+
+            
+#             current_month_total = Booking.objects.filter(bookingDate__gte=current_month_start)\
+#                                                 .aggregate(total_revenue=Sum('idTicket__idTrip__price'))['total_revenue'] or 0
+#             # last_month_total = Booking.objects.filter(bookingDate__gte=last_month_start, bookingDate__lt=current_month_start)\
+#             #                                     .aggregate(total_revenue=Sum('idTicket__idTrip__price'))['total_revenue'] or 0
+#             data1.append({
+#                 'current_month_total':current_month_total,
+#                 # 'last_month_total':last_month_total,    
+#                     })
+#             context = {
+#                 'data': data,
+#                 'data1': data1,
+#                 'user_not_login': user_not_login,
+#                 'user_login': user_login,
+#                 'is_driver': is_driver,
+
+#             }
+#             return render(request, "app/admin/statistics.html",context)
+#         else:
+#             return render(request, 'app/errors.html', {
+#                 'error_code': 403,
+#                 'error_message': 'You do not have access.'
+#             }, status=403)
+
+#     return render(request, 'app/errors.html', {
+#         'error_code': 403,
+#         'error_message': 'You must login before view.'
+#     }, status=403)
+
+from datetime import datetime, timezone as dt_timezone
+
+    
+
+
+@login_required(login_url='/login/')
+def statistics(request):
+    if request.user.is_authenticated:
+        user_not_login = "hidden"
+        user_login = "show"
+        is_driver = hasattr(request.user, 'driver')
+        if request.user.is_superuser:
+            month = request.GET.get('month', timezone.now().month)
+            year = request.GET.get('year', timezone.now().year)
+
+            # Chuyển đổi tháng và năm thành datetime
+            selected_month_start = datetime(int(year), int(month), 1, tzinfo=dt_timezone.utc)
+            next_month_start = (selected_month_start + relativedelta(months=1))
+
+            trips = Trip.objects.all()
+            data = []
+            data1=[]
+
+            for trip in trips:
+                current_month_bookings = Booking.objects.filter(
+                    idTicket__idTrip=trip,
+                    bookingDate__gte=selected_month_start,
+                    bookingDate__lt=next_month_start
+                ).count()
+
+                current_month_revenue = Booking.objects.filter(
+                    idTicket__idTrip=trip,
+                    bookingDate__gte=selected_month_start,
+                    bookingDate__lt=next_month_start
+                ).aggregate(total_revenue=Sum('idTicket__idTrip__price'))['total_revenue'] or 0
+
+                data.append({
+                    'trip': trip.name(),
+                    'current_month_bookings': current_month_bookings,
+                    'current_month_revenue': current_month_revenue,
+                })
+
+            current_month_total = Booking.objects.filter(
+                bookingDate__gte=selected_month_start,
+                bookingDate__lt=next_month_start
+            ).aggregate(total_revenue=Sum('idTicket__idTrip__price'))['total_revenue'] or 0
+
+            data1.append({
+                'current_month_total': current_month_total,
+            })
+
+            context = {
+                'data': data,
+                'data1': data1,
+                'user_not_login': user_not_login,
+                'user_login': user_login,
+                'is_driver': is_driver,
+            }
+            return render(request, "app/admin/statistics.html", context)
+        else:
+            return render(request, 'app/errors.html', {
+                'error_code': 403,
+                'error_message': 'You do not have access.'
+            }, status=403)
+
+    return render(request, 'app/errors.html', {
+        'error_code': 403,
+        'error_message': 'You must login before view.'
+    }, status=403)
+
+
+
+# @login_required(login_url='/login/')
+# def feedbackAdmin(request):
+#     if request.user.is_authenticated:
+#         user_not_login = "hidden"
+#         user_login = "show"
+#         is_driver = hasattr(request.user, 'driver')
+
+#         if request.user.is_superuser:
+#             # Lấy danh sách các booking có feedback sử dụng Subquery
+#             bookings_with_feedback = Booking.objects.filter(
+#                 id__in=Subquery(
+#                     Feedback.objects.filter(idBooking=OuterRef('id')).values('idBooking')
+#                 )
+#             )
+#             booked_tickets = []
+#             for booking in bookings_with_feedback:
+#                 ticket = booking.idTicket
+#                 if ticket and ticket.status:
+#                     booked_tickets.append({
+#                         'ticket': ticket,
+#                         'booking': booking,
+#                     })
+
+#             context = {
+#                 'user_not_login': user_not_login,
+#                 'user_login': user_login,
+#                 'booked_tickets': booked_tickets,
+#                 'is_driver': is_driver,
+#             }
+#             return render(request, 'app/admin/feedback.html', context)
+                
+#         else:
+#             return render(request, 'app/errors.html', {
+#                 'error_code': 403,
+#                 'error_message': 'You do not have access.'
+#             }, status=403)
+
+#     return render(request, 'app/errors.html', {
+#         'error_code': 403,
+#         'error_message': 'You must login before feedback.'
+#     }, status=403)
+
+# @login_required(login_url='/login/')
+# def feedbackAdmin(request):
+#     if request.user.is_authenticated:
+#         user_not_login = "hidden"
+#         user_login = "show"
+#         is_driver = hasattr(request.user, 'driver')
+
+#         if request.user.is_superuser:
+#             booked_tickets = Booking.objects.all()  # Lấy tất cả các vé đã đặt, hoặc lọc theo điều kiện phù hợp
+#             trips_with_feedback = Trip.objects.filter(
+#                 id__in=Subquery(
+#                     Feedback.objects.filter(idTrip=OuterRef('id')).values('idTrip')
+#                 )
+#             )
+            
+#             context = {
+#                 'user_not_login': user_not_login,
+#                 'user_login': user_login,
+#                 'booked_tickets': booked_tickets,
+#                 'trips_with_feedback': trips_with_feedback,
+#                 'is_driver': is_driver,
+#             }
+#             return render(request, 'app/admin/feedback.html', context)
+                
+#         else:
+#             return render(request, 'app/errors.html', {
+#                 'error_code': 403,
+#                 'error_message': 'You do not have access.'
+#             }, status=403)
+
+#     return render(request, 'app/errors.html', {
+#         'error_code': 403,
+#         'error_message': 'You must login before feedback.'
+#     }, status=403)
+
+
+# @login_required(login_url='/login/')
+# def feedbackAdmin(request):
+#     if request.user.is_authenticated:
+#         user_not_login = "hidden"
+#         user_login = "show"
+#         is_driver = hasattr(request.user, 'driver')
+
+#         if request.user.is_superuser:
+#             bookings = Booking.objects.all().order_by('-idTicket__idTrip__departure_Time')  # Lấy tất cả các vé đã đặt, hoặc lọc theo điều kiện phù hợp
+#             booked_tickets = []
+#             seen_trips = set()
+
+#             for booking in bookings:
+#                 ticket = booking.idTicket
+#                 trip = ticket.idTrip if ticket else None
+#                 if trip and trip.id not in seen_trips:
+#                     if ticket and ticket.status:
+#                         booked_tickets.append({
+#                             'ticket': ticket,
+#                             'booking': booking,
+#                         })
+#                         seen_trips.add(trip.id)  # Đánh dấu trip đã được thêm vào
+
+#             context = {
+#                 'user_not_login': user_not_login,
+#                 'user_login': user_login,
+#                 'booked_tickets': booked_tickets,
+#                 'is_driver': is_driver,
+#             }
+#             return render(request, 'app/admin/feedback.html', context)
+                
+#         else:
+#             return render(request, 'app/errors.html', {
+#                 'error_code': 403,
+#                 'error_message': 'You do not have access.'
+#             }, status=403)
+
+#     return render(request, 'app/errors.html', {
+#         'error_code': 403,
+#         'error_message': 'You must login before feedback.'
+#     }, status=403)
+@login_required(login_url='/login/')
+def feedbackAdmin(request):
+    if request.user.is_authenticated:
+        user_not_login = "hidden"
+        user_login = "show"
+        is_driver = hasattr(request.user, 'driver')
+
+        if request.user.is_superuser:
+            bookings = Booking.objects.all().order_by('-idTicket__idTrip__departure_Time')
+            booked_tickets = []
+            seen_trips = set()
+            current_date = None
+
+            for booking in bookings:
+                ticket = booking.idTicket
+                trip = ticket.idTrip if ticket else None
+                if trip and trip.id not in seen_trips:
+                    if ticket and ticket.status:
+                        departure_date = trip.departure_Time.date()
+                        formatted_date = departure_date.strftime("%Y-%m-%d")
+                        if formatted_date != current_date:
+                            booked_tickets.append({
+                                'is_date': True,
+                                'date': formatted_date,
+                            })
+                            current_date = formatted_date
+                        booked_tickets.append({
+                            'ticket': ticket,
+                            'booking': booking,
+                            'is_date': False,
+                        })
+                        seen_trips.add(trip.id)
+
+            context = {
+                'user_not_login': user_not_login,
+                'user_login': user_login,
+                'booked_tickets': booked_tickets,
+                'is_driver': is_driver,
+            }
+            return render(request, 'app/admin/feedback.html', context)
+                
+        else:
+            return render(request, 'app/errors.html', {
+                'error_code': 403,
+                'error_message': 'You do not have access.'
+            }, status=403)
+
+    return render(request, 'app/errors.html', {
+        'error_code': 403,
+        'error_message': 'You must login before feedback.'
+    }, status=403)
+
+
+
+@login_required(login_url='/login/')
+def feedback(request, trip_id):
+    if request.user.is_authenticated:
+        if request.user.is_superuser or hasattr(request.user, 'customer'):
+            is_driver = hasattr(request.user, 'driver')
+            is_customer = hasattr(request.user, 'customer')
+
+            user_not_login = "hidden"
+            user_login = "show"
+        
+            trip = get_object_or_404(Trip, pk=trip_id)
+            
+            can_submit_feedback = False
+            if is_customer:
+                # Kiểm tra xem khách hàng đã đặt vé cho chuyến đi này chưa
+                can_submit_feedback = Booking.objects.filter(idCustomer=request.user.customer, idTicket__idTrip=trip).exists()
+            if request.user.is_superuser:
+                can_submit_feedback=True
+            if request.method == 'POST' and can_submit_feedback:
+                content = request.POST.get('content')
+                if content:
+                    Feedback.objects.create(
+                        content=content,
+                        idTrip=trip,
+                        user=request.user
+                    )
+                    return redirect('feedback', trip_id=trip_id)
+            
+            feedbacks = Feedback.objects.filter(idTrip=trip)
+            
+            context = {
+                'is_driver': is_driver,
+                'user_not_login': user_not_login,
+                'user_login': user_login,
+                'trip_id': trip_id,
+                'feedbacks': feedbacks,
+                'is_customer': is_customer,
+                'can_submit_feedback': can_submit_feedback,  # Truyền trạng thái vào context
+            }
+            
+            return render(request, 'app/customer/feedback.html', context)
+        else:
+            return render(request, 'app/errors.html', {
+                            'error_code': 403,
+                            'error_message': 'You do not have access.'
+                        }, status=403)
+    else:
+        return render(request, 'app/errors.html', {
+            'error_code': 403,
+            'error_message': 'You must login before feedback.'
+        }, status=403)
+
+
+
+
+
+@login_required(login_url='/login/')
+def overviewFeedback(request):
+    if request.user.is_authenticated:
+        if request.user.is_superuser or hasattr(request.user, 'customer'):
+            is_driver = hasattr(request.user, 'driver')
+            is_customer = hasattr(request.user, 'customer')
+
+            user_not_login = "hidden"
+            user_login = "show"
+        
+            feedbacks = Feedback.objects.select_related('idTrip').all()
+            
+            context = {
+                'is_driver': is_driver,
+                'user_not_login': user_not_login,
+                'user_login': user_login,
+                'feedbacks': feedbacks,
+                'is_customer': is_customer,
+            }
+            
+            return render(request, 'app/customer/overviewFeedback.html', context)
+        else:
+            return render(request, 'app/errors.html', {
+                            'error_code': 403,
+                            'error_message': 'You do not have access.'
+                        }, status=403)
+    else:
+        return render(request, 'app/errors.html', {
+            'error_code': 403,
+            'error_message': 'You must login before feedback.'
+        }, status=403)
+
+
+
+# @login_required(login_url='/login/')
+# def feedback(request, booking_id):
+#     if request.user.is_authenticated:
+#         if request.user.is_superuser or hasattr(request.user, 'customer'):
+#             is_driver = hasattr(request.user, 'driver')
+#             is_customer = hasattr(request.user, 'customer')
+
+#             user_not_login = "hidden"
+#             user_login = "show"
+        
+#             booking = get_object_or_404(Booking, pk=booking_id)
+            
+#             if request.method == 'POST':
+#                 content = request.POST.get('content')
+#                 if content:
+#                     Feedback.objects.create(
+#                         content=content,
+#                         idBooking=booking,
+#                         user=request.user
+#                     )
+#                     return redirect('feedback', booking_id=booking_id)
+            
+#             feedbacks = Feedback.objects.filter(idBooking=booking)
+            
+#             context = {
+#                 'is_driver': is_driver,
+#                 'user_not_login': user_not_login,
+#                 'user_login': user_login,
+#                 'booking_id': booking_id,
+#                 'feedbacks': feedbacks,
+#                 'is_customer':is_customer,
+#             }
+            
+#             return render(request, 'app/customer/feedback.html', context)
+#         else:
+#             return render(request, 'app/errors.html', {
+#                             'error_code': 403,
+#                             'error_message': 'You do not have access.'
+#                         }, status=403)
+#     else:
+#         return render(request, 'app/errors.html', {
+#             'error_code': 403,
+#             'error_message': 'You must login before feedback.'
+#         }, status=403)
+
+
+
+@login_required(login_url='/login/')
 def schedule(request):
     if request.user.is_authenticated:
         user_not_login = "hidden"
         user_login = "show"
+        is_driver = hasattr(request.user, 'driver')
+
         if hasattr(request.user, 'driver'):
             buses = Bus.objects.filter(id_Driver=request.user)
-            trips = Trip.objects.filter(id_Buses__in=buses)
+            # trips = Trip.objects.filter(id_Buses__in=buses)
+            trips = Trip.objects.filter(id_Buses__in=buses, departure_Time__gt=timezone.now())
+
         else:
             return render(request, 'app/errors.html', {
                 'error_code': 403,
@@ -43,9 +530,10 @@ def schedule(request):
             'error_code': 403,
             'error_message': 'You must login to see schedule.'
         }, status=403)
-    is_driver = hasattr(request.user, 'driver') 
-
+    
+    
     context = {
+        'buses':buses,
         'is_driver':is_driver,
         'user_not_login': user_not_login,
         'user_login': user_login,
@@ -53,6 +541,66 @@ def schedule(request):
     }
     return render(request, 'app/driver/schedule.html', context)
 
+@login_required(login_url='/login/')
+def reportVehicle(request, bus_id, trip_id):
+    if request.user.is_authenticated:
+        is_driver = hasattr(request.user, 'driver')
+        user_not_login = "hidden"
+        user_login = "show"
+        status="show"
+        if hasattr(request.user, 'driver'):
+            current_time = timezone.now()
+            bus = get_object_or_404(Bus, id=bus_id)
+            trip = get_object_or_404(Trip, id=trip_id)
+            # print(trip)
+            if current_time <= trip.arrival_Time:
+                status="hidden"
+            print(current_time)
+            print(trip.arrival_Time)
+            print(current_time - trip.arrival_Time)
+            print('status: ',status)
+
+
+            if request.method == 'POST':
+                form = BusForm(request.POST, request.FILES, instance=bus)
+                if form.is_valid():
+                    form.save()
+                    return redirect('reportVehicle', bus_id=bus_id)  # Chuyển hướng đến trang thành công sau khi lưu
+            form = BusForm(instance=bus)
+            context = {
+                'form': form,
+                'status':status,
+                'bus_id':bus_id,
+                'is_driver':is_driver,
+                'user_not_login': user_not_login,
+                'user_login': user_login,
+                }
+
+            return render(request, 'app/driver/reportVehicle.html', context)
+        else:
+             return render(request, 'app/errors.html', {
+                'error_code': 403,
+                'error_message': 'Driver can see report vehicle.'
+            }, status=403)    
+    else:
+        return render(request, 'app/errors.html', {
+            'error_code': 403,
+            'error_message': 'You must login to see report vehicle.'
+        }, status=403)
+
+
+def confirm(request):
+    if request.user.is_authenticated:
+        user_not_login = "hidden"
+        user_login = "show"
+    else:
+        user_not_login = "show"
+        user_login = "hidden"
+    context = {
+        'user_not_login': user_not_login,
+        'user_login': user_login,
+    }
+    return render(request, "app/customer/confirm.html", context)
 
 def search(request):
     if request.user.is_authenticated:
@@ -61,12 +609,14 @@ def search(request):
     else:
         user_not_login = "show"
         user_login = "hidden"
+    # is_driver = hasattr(request.user, 'driver')
 
     context = {
+        # 'is_driver':is_driver,
         'user_not_login': user_not_login,
         'user_login': user_login,
     }
-
+    is_driver = hasattr(request.user, 'driver')
     if request.method == "POST":
         journeyType = request.POST.get('journeyType')
         start_point = request.POST.get('departure')
@@ -114,7 +664,6 @@ def search(request):
                     'available_tickets': available_tickets,
                     'tickets': return_trip.Tickets.all(),
                 })
-        is_driver = hasattr(request.user, 'driver') 
 
         context.update({
             'is_driver':is_driver,
@@ -132,45 +681,168 @@ def search(request):
 
 
 @login_required(login_url='/login/')
+def download_customer_info(request, trip_id):
+    if request.user.is_authenticated and hasattr(request.user, 'driver'):
+        trip = get_object_or_404(Trip, id=trip_id)
+        customer_info = Booking.objects.filter(idTicket__idTrip=trip)
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="trip_{trip.id}_customer_info.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow(['Name', 'Phone Number', 'Ticket Name'])
+
+        for customer in customer_info:
+            writer.writerow([customer.name_Customer, customer.phone_Customer, customer.idTicket.name])
+
+        return response
+    else:
+        return render(request, 'app/errors.html', {
+            'error_code': 403,
+            'error_message': 'Access denied.'
+        }, status=403)
+
+@login_required(login_url='/login/')
+def passengerList(request, trip_id):
+    if request.user.is_authenticated:
+        is_driver = hasattr(request.user, 'driver')
+        user_not_login = "hidden"
+        user_login = "show"
+        if hasattr(request.user, 'driver'):
+            trip = get_object_or_404(Trip, id=trip_id)
+            customer_info = Booking.objects.filter(idTicket__idTrip=trip)
+            
+
+        else:
+            return render(request, 'app/errors.html', {
+                'error_code': 403,
+                'error_message': 'Driver can see passenger list.'
+            }, status=403)    
+    else:
+        return render(request, 'app/errors.html', {
+            'error_code': 403,
+            'error_message': 'You must login to see passenger list.'
+        }, status=403)
+    
+    
+    context = {
+        'customer_info':customer_info,
+        'is_driver':is_driver,
+        'user_not_login': user_not_login,
+        'user_login': user_login,
+        'trip': trip,
+    }
+    return render(request, 'app/driver/passengerList.html', context)
+
+
+from django.urls import reverse
+
+@login_required(login_url='/login/')
 def history(request):
     if request.user.is_authenticated:
-        # if hasattr(request.user, 'customer'):
-             
-        user = request.user
-        print('user: ',user)
-        bookings = Booking.objects.filter(idCustomer=user)
+        user_not_login = "hidden"
+        user_login = "show"
+        is_driver = hasattr(request.user, 'driver')
+        message = None
 
-        booked_tickets = []
+        if hasattr(request.user, 'customer'):
+            user = request.user
+            bookings = Booking.objects.filter(idCustomer=user).order_by('-idTicket__idTrip__departure_Time')
 
-        # Duyệt qua từng booking để lấy thông tin vé tương ứng
-        for booking in bookings:
-            ticket = booking.idTicket  # Lấy vé từ booking
+            # booked_tickets = []
+            trips_grouped_by_date = []
 
-            # Kiểm tra xem vé có tồn tại không và có trạng thái đúng (đã booking)
-            if ticket and ticket.status:
-               booked_tickets.append({
-                    'ticket': ticket,
-                    'booking_status': booking.status,  # Lấy trạng thái của booking
-                })
-        user_not_login ="hidden"
-        user_login = "show" 
-        is_driver = hasattr(request.user, 'driver') 
+            for booking in bookings:
+                ticket = booking.idTicket
+                if ticket and ticket.status:
+                    # trip_date = ticket.idTrip.departure_Time.strftime("%Y-%m-%d")
+                    is_past_trip = timezone.now() > ticket.idTrip.arrival_Time
+                    # if trip_date not in trips_grouped_by_date:
+                        # trips_grouped_by_date[trip_date] = []
+                    trips_grouped_by_date.append({
+                        'ticket': ticket,
+                        'booking': booking,
+                        'is_past_trip': is_past_trip,  
+                    })
 
-        context={   
-            'is_driver':is_driver,
-            'user_not_login': user_not_login,
-            'user_login':user_login,
-            'booked_tickets':booked_tickets,
-        }
-    return render(request, 'app/customer/history.html', context)
+            if request.method=='POST':
+                ticket_id = request.POST.get('ticket_id')
+                try:
+                    ticket = Ticket.objects.get(id=ticket_id)
+                    if ticket:
+                        booking = Booking.objects.filter(idTicket=ticket).first()
+                        if booking:
+                            if ticket.idTrip.departure_Time - timezone.now() >= timedelta(days=3):
+                                # Xóa booking
+                                booking.delete()
+                                customer=Customer.objects.get(id=request.user.id)
+                                customer.point-=10  
+                                customer.save()
+                                # Cập nhật lại trạng thái của ticket sau khi xóa booking
+                                ticket.update_status()
+                                # Redirect về trang history sau khi xử lý thành công
+                                return redirect(reverse('history') + '?message=Ticket Cancellation Successful')
+                            else:
+                                return redirect(reverse('history') + '?message=You can only cancel tickets at least 3 days before departure.')
+
+                except Ticket.DoesNotExist:
+                    
+                    return redirect(f'{reverse("history")}?message=Ticket does not exist.')
+
+            
+            context = {
+                'user_not_login': user_not_login,
+                'user_login': user_login,
+                'trips_grouped_by_date': trips_grouped_by_date,
+                'is_driver': is_driver,
+            }
+            return render(request, 'app/customer/history.html', context)
+        
+        elif is_driver:
+            buses = Bus.objects.filter(id_Driver=request.user)
+            trips = Trip.objects.filter(id_Buses__in=buses, departure_Time__lt=timezone.now())
+
+            context = {
+                'trips': trips,
+                'buses': buses,
+                'is_driver': is_driver,
+                'user_not_login': user_not_login,
+                'user_login': user_login,
+                'history':True,
+            }
+            return render(request, 'app/driver/schedule.html', context)
+        
+        else:
+            return render(request, 'app/errors.html', {
+                'error_code': 403,
+                'error_message': 'You do not have access.'
+            }, status=403)
+
+
+    return render(request, 'app/errors.html', {
+        'error_code': 403,
+        'error_message': 'You must login before view history.'
+    }, status=403)
+
 
 @login_required(login_url='/login/')
 def profile(request):
     if request.user.is_authenticated:
         user_not_login ="hidden"
         user_login = "show" 
-
+        is_driver = hasattr(request.user, 'driver')
+        is_customer = hasattr(request.user, 'customer')
+    
     user = request.user
+    if is_customer:
+            # Lấy điểm của khách hàng từ cơ sở dữ liệu
+            customer = Customer.objects.filter(pk=user.pk).first()
+            if customer:
+                point = customer.point
+    if is_driver:
+            driver = Driver.objects.filter(pk=user.pk).first()
+            if driver:
+                salary = driver.totalSalary
     if request.method == 'POST':
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
@@ -194,7 +866,6 @@ def profile(request):
             messages.success(request, 'Profile updated successfully.')
 
         return redirect('profile')
-    is_driver = hasattr(request.user, 'driver') 
 
     # Nếu là GET request hoặc nếu có lỗi trong POST request, render lại trang profile
     context = {
@@ -205,6 +876,9 @@ def profile(request):
         'email': user.email,
         'user_not_login': user_not_login,
         'user_login':user_login,
+        'is_customer':is_customer,
+        'point':point if is_customer else 0,
+        'salary': salary if is_driver else 0,
 
     }
     return render(request, 'app/profile.html', context)
@@ -224,9 +898,124 @@ def logoutPage(request):
     return redirect('login')
 
 
-# def schedule(request):
-#     return render(request, 'app/driver/schedule.html')
+from django.core.mail import send_mail
+from django.http import JsonResponse
+import random
+from django.conf import settings
+from django.contrib.auth.forms import PasswordChangeForm, SetPasswordForm
 
+def send_email_booking(request,name,mobie,booked_tickets,user_email):
+        subject = 'Successfull Booking'
+        message = f'You have booking ticket with {name}, {mobie}, and {booked_tickets}!'
+        recipient_list = [user_email]
+        try:
+            send_mail(subject, message, settings.EMAIL_HOST_USER, recipient_list)
+            messages.success(request, 'Send email for booking complete!')
+            return JsonResponse({'success': True})
+        except Exception as e:
+            messages.error(request, f'Failed to send email. Error: {str(e)}')
+            return JsonResponse({'success': False, 'error': str(e)})
+
+
+
+def send_otp_email(request):
+        if request.user.is_authenticated:
+            user = request.user
+            otp = generate_otp()
+
+            # Lưu OTP vào session để xác thực sau khi người dùng nhập OTP
+            request.session['otp'] = otp
+
+            subject = 'OTP for Password Change Request'
+            message = f'Your OTP for password change request is: {otp}'
+            recipient_list = [user.email]
+            try:
+                send_mail(subject, message, settings.EMAIL_HOST_USER, recipient_list)
+                messages.success(request, 'OTP has been sent to your email.')
+                return JsonResponse({'success': True})
+            except Exception as e:
+                messages.error(request, f'Failed to send OTP. Error: {str(e)}')
+                return JsonResponse({'success': False, 'error': str(e)})
+        else:
+
+            otp = generate_otp()
+            fill_email = request.POST.get('email')
+            request.session['otp'] = otp
+            request.session['email'] = fill_email
+            # print(fill_email)
+            # print(fill_email)
+            subject = 'OTP for Password Change Request'
+            message = f'Your OTP for password change request is: {otp}'
+            recipient_list = [fill_email]
+            try:
+                send_mail(subject, message, settings.EMAIL_HOST_USER, recipient_list)
+                messages.success(request, 'OTP has been sent to your email.')
+                return redirect('change_password')
+                # return JsonResponse({'success': True})
+            except Exception as e:
+                messages.error(request, f'Failed to send OTP. Error: {str(e)}')
+                # return JsonResponse({'success': False, 'error': str(e)})
+                return redirect('change_password')
+    # else:
+    #     return JsonResponse({'success': False, 'error': 'Phương thức yêu cầu không hợp lệ.'})
+
+
+    # return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+def formEmail(request):
+    return render(request, 'app/formEmail.html')
+def generate_otp():
+    return str(random.randint(100000, 999999))
+
+
+
+    
+# @login_required
+def change_password(request):
+    if request.user.is_authenticated:
+        form = PasswordChangeForm(request.user)
+    else:
+        form = SetPasswordForm(None)
+
+    if request.method == 'POST':
+        otp_from_user = request.POST.get('otp', '')
+        if otp_from_user:
+            if 'otp' in request.session and request.session['otp'] == otp_from_user:
+                new_password1 = request.POST.get('new_password1')
+                new_password2 = request.POST.get('new_password2')
+
+                if new_password1 == new_password2:
+                    email = request.session.get('email')
+                    if request.user.is_authenticated:
+                        user = request.user
+                    else:
+                        try:
+                            user = User.objects.get(email=email)
+                        except User.DoesNotExist:
+                            messages.error(request, 'No user is associated with this email.')
+                            return redirect('forrget_password')
+
+                    user.set_password(new_password1)
+                    user.save()
+
+                    if request.user.is_authenticated:
+                        updated_user = authenticate(username=user.username, password=new_password1)
+                        if updated_user is not None:
+                            login(request, updated_user)
+                    else:
+                        # updated_user = authenticate(username=user.username, password=new_password1)
+                        # if updated_user is not None:
+                            # login(request, updated_user)
+                            messages.success(request, 'You have changed your password successfully!')
+                            return redirect('login')
+
+                    messages.success(request, 'You have changed your password successfully!')
+                    return redirect('profile')
+                else:
+                    messages.error(request, 'Passwords do not match.')
+            else:
+                messages.error(request, 'Invalid OTP. Please try again.')
+
+    return render(request, 'app/change_password.html', {'form': form})
 
 
 def loginPage(request):
@@ -252,13 +1041,8 @@ def loginPage(request):
             else:
                 return redirect('home')
         else: messages.info(request, 'User or password is not correct!')
-    is_driver = hasattr(request.user, 'driver') 
-    context = {'user_not_login':user_not_login, 'user_login':user_login,'is_driver':is_driver}
+    context = {'user_not_login':user_not_login, 'user_login':user_login}
     return render(request,'app/login.html',context)
-
-def test(request):
-    return render(request, 'app/test.html')
-
 
 def aboutUs(request):
     if request.user.is_authenticated:
@@ -267,7 +1051,7 @@ def aboutUs(request):
     else:
         user_not_login ="show"
         user_login = "hidden" 
-    is_driver = hasattr(request.user, 'driver') 
+    is_driver = hasattr(request.user, 'driver')
 
     context = {
         'is_driver':is_driver,
@@ -286,11 +1070,11 @@ def register(request):
         form = CreateCustomerForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request, "Register successful!")
             return redirect('login')
-    is_driver = hasattr(request.user, 'driver') 
-    user_not_login = "show"
+    user_not_login = "show" 
     user_login = "hidden" 
-    return render(request, 'app/register.html', {'form': form,'user_not_login': user_not_login, 'user_login': user_login, 'is_driver':is_driver})
+    return render(request, 'app/register.html', {'form': form,'user_not_login': user_not_login, 'user_login': user_login})
 
 def index(request):
     if request.user.is_authenticated:
@@ -302,42 +1086,85 @@ def index(request):
     try:
             # Lấy dữ liệu từ tất cả các trang
             all_buses = Bus.objects.all()
-            all_trips =Trip.objects.all()
-
-
+            #Lấy tất cả trip chuẩn bị chạy trong 3 ngày tới và giới hạn 8 trip
+            all_trips = Trip.objects.filter(
+                departure_Time__gte=timezone.now(),
+                departure_Time__lte= timezone.now() + timedelta(days=3),
+            ).order_by('departure_Time')[:8]
+           
             # Lọc ra các chuyến đi có điểm khởi hành là "Thành phố Hồ Chí Minh"
-            hcm = Trip.objects.filter(id_Route__startPoint='Thành phố Hồ Chí Minh')
-            dl = Trip.objects.filter(id_Route__startPoint='Đà Lạt')
-            vt = Trip.objects.filter(id_Route__startPoint='Bà Rịa - Vũng Tàu')
+            hcm = Trip.objects.filter(id_Route__startPoint='Thành phố Hồ Chí Minh', departure_Time__gt=timezone.now())
+            dl = Trip.objects.filter(id_Route__startPoint='Đà Lạt', departure_Time__gt=timezone.now())
+            # vt = Trip.objects.filter(id_Route__startPoint='Bà Rịa - Vũng Tàu', departure_Time__gt=timezone.now())
+          
 
-            # Nhóm các chuyến đi theo điểm khởi hành và chỉ lấy tối đa 3 chuyến xe đầu tiên của mỗi nhóm
-            grouped_trips_hcm = defaultdict(list)
-            grouped_trips_dl = defaultdict(list)
-            grouped_trips_vt = defaultdict(list)
+          # Lấy tất cả các chuyến đi thoả mãn điều kiện ban đầu
+            vt = Trip.objects.filter(
+                id_Route__startPoint='Bà Rịa - Vũng Tàu',
+                departure_Time__gt=timezone.now()
+            ).order_by('id_Route__endPoint', 'departure_Time')
 
-            for tripHCM in hcm:
-                if len(grouped_trips_hcm[tripHCM.departure_Station]) < 3:
-                    grouped_trips_hcm[tripHCM.departure_Station].append(tripHCM)
-            for tripDL in dl:
-                if len(grouped_trips_dl[tripDL.departure_Station]) < 3:
-                    grouped_trips_dl[tripDL.departure_Station].append(tripDL)
-            for tripVT in vt:
-                if len(grouped_trips_vt[tripVT.departure_Station]) < 3:
-                    grouped_trips_vt[tripVT.departure_Station].append(tripVT)
+            # Sử dụng Python để lọc các kết quả và chỉ giữ lại các chuyến đi với điểm đến khác nhau
+            unique_endpoints = set()
+            filtered_vt_trips = []
 
-            # Kết quả là danh sách các chuyến đi
-            hcm_trips = [tripHCM for trips in grouped_trips_hcm.values() for tripHCM in trips]
-            dl_trips = [tripDL for trips in grouped_trips_dl.values() for tripDL in trips]
-            vt_trips = [tripVT for trips in grouped_trips_vt.values() for tripVT in trips]
-            is_driver = hasattr(request.user, 'driver') 
-            # print('is_driver',is_driver)
+            for trip in vt:
+                if trip.id_Route.endPoint not in unique_endpoints:
+                    unique_endpoints.add(trip.id_Route.endPoint)
+                    filtered_vt_trips.append(trip)
+                if len(filtered_vt_trips) >= 2:
+                    break
+    
+
+    
+          # Lấy tất cả các chuyến đi thoả mãn điều kiện ban đầu
+            dl = Trip.objects.filter(
+                id_Route__startPoint='Đà Lạt',
+                departure_Time__gt=timezone.now()
+            ).order_by('id_Route__endPoint', 'departure_Time')
+
+            # Sử dụng Python để lọc các kết quả và chỉ giữ lại các chuyến đi với điểm đến khác nhau
+            unique_endpoints = set()
+            filtered_dl_trips = []
+
+            for trip in dl:
+                if trip.id_Route.endPoint not in unique_endpoints:
+                    unique_endpoints.add(trip.id_Route.endPoint)
+                    filtered_dl_trips.append(trip)
+                if len(filtered_dl_trips) >= 3:
+                    break
+
+
+                
+          # Lấy tất cả các chuyến đi thoả mãn điều kiện ban đầu
+            hcm = Trip.objects.filter(
+                id_Route__startPoint='Thành phố Hồ Chí Minh',
+                departure_Time__gt=timezone.now()
+            ).order_by('id_Route__endPoint', 'departure_Time')
+
+            # Sử dụng Python để lọc các kết quả và chỉ giữ lại các chuyến đi với điểm đến khác nhau
+            unique_endpoints = set()
+            filtered_hcm_trips = []
+
+            for trip in hcm:
+                if trip.id_Route.endPoint not in unique_endpoints:
+                    unique_endpoints.add(trip.id_Route.endPoint)
+                    filtered_hcm_trips.append(trip)
+                if len(filtered_hcm_trips) >= 3:
+                    break
+
+
+
+    
             user_data = request.session.get('user_data')
             response = request.session.get('response')
+            is_driver = hasattr(request.user, 'driver')
+
             context = {
-                'hcm_trips':hcm_trips,
-                'dl_trips':dl_trips,
-                'vt_trips':vt_trips,
                 'is_driver':is_driver,
+                'hcm_trips':filtered_hcm_trips,
+                'dl_trips':filtered_dl_trips,
+                'vt_trips':filtered_vt_trips,
 
                 'all_buses':all_buses,
                 'all_trips':all_trips,
@@ -359,11 +1186,10 @@ def booking(request, trip_id):
     if request.user.is_authenticated:
         user_not_login = "hidden"
         user_login = "show"
-        # print('is_Customer: ',hasattr(request.user, 'customer'))
         if hasattr(request.user, 'customer'):
             try:
                 customer = Customer.objects.get(id=request.user.id)
-                print('customer: ',customer)
+                print('customer: ', customer)
             except Customer.DoesNotExist:
                 customer = None
         else:
@@ -379,7 +1205,13 @@ def booking(request, trip_id):
     trip = Trip.objects.get(id=trip_id)
     tickets = Ticket.objects.filter(idTrip=trip)
     error_message = ""
-
+    # Áp dụng giảm giá 50% cho vé đầu tiên
+    # discount_price = 0
+    # discount_ticket = None
+    # print(customer.point)
+    # if customer and customer.point >= 100:
+    #     customer.point -= 100  # Giảm điểm của khách hàng đi 100
+    #     customer.save()
     if request.method == "POST":
         name = request.POST.get('name', '')
         mobile = request.POST.get('mobile', '')
@@ -387,12 +1219,12 @@ def booking(request, trip_id):
         
         try:
             selected_tickets = json.loads(selected_tickets)
-            print('selected_tickets: ',selected_tickets)
+            print('selected_tickets: ', selected_tickets)
         except json.JSONDecodeError:
             selected_tickets = []
         
-        if name and mobile:
-            # Check for each selected ticket if it already has a booking
+        if name and mobile and selected_tickets:
+            booked_tickets = []
             for ticket_id in selected_tickets:
                 ticket = Ticket.objects.get(id=ticket_id)
                 if Booking.objects.filter(idTicket=ticket).exists():
@@ -405,15 +1237,41 @@ def booking(request, trip_id):
                         'error_message': error_message,
                     }
                     return render(request, 'app/customer/booking.html', context)
-            for ticket_id in selected_tickets:
+                booked_tickets.append(ticket)
+
+            # total_price = sum(ticket.idTrip.price for ticket in booked_tickets) - discount_ticket.idTrip.price + discount_price
+
+            # Tạo Booking cho tất cả các vé đã chọn
+            for ticket in booked_tickets:
+                if customer:
+                    # discount_price = 0
+                    customer.point += 10
+                    if customer.point>=100:
+                    #     discount_price = discount_ticket.idTrip.price * 0.5
+
+                        customer.point -= 100
+                    customer.save()
                 
-                ticket = Ticket.objects.get(id=ticket_id)
                 Booking.objects.create(
                     name_Customer=name,
                     phone_Customer=mobile,
                     idTicket=ticket,
                     idCustomer=customer                
-                    )
+                )
+
+            user_email = request.user.email if request.user.is_authenticated else None
+            if user_email:
+                send_email_booking(name, mobile, selected_tickets, user_email)
+            context = {
+                'name': name,
+                'phone': mobile,
+                'booked_tickets': booked_tickets,
+                'user_not_login': user_not_login,
+                'user_login': user_login,
+                # 'total_price': total_price,
+                # 'original_price': sum(ticket.idTrip.price for ticket in booked_tickets),
+            }
+            return render(request, "app/customer/confirm.html", context)
         else:
             error_message = "Name and mobile number are required."
             context = {
@@ -421,20 +1279,33 @@ def booking(request, trip_id):
                 'user_login': user_login,
                 'trip': trip,
                 'tickets': tickets,
+                'selected_tickets': selected_tickets,
                 'error_message': error_message,
             }
             return render(request, 'app/customer/booking.html', context)
-
-
-            
-        return HttpResponse(f'Hello {name}! Your form has been submitted successfully with {mobile}.\n selected_tickets: {selected_tickets}')
-    
+        
+    point=customer.point
+    print("point: ", point)
     context = {
         'user_not_login': user_not_login,
         'user_login': user_login,
         'trip': trip,
         'tickets': tickets,
         'error_message': error_message,
+        'discount_price': point,
 
     }
     return render(request, 'app/customer/booking.html', context)
+
+
+def send_email_booking(name, mobile, booked_tickets, user_email):
+    subject = 'Successful Booking'
+    message = f'You have booked tickets with the following details:\n\nName: {name}\nMobile: {mobile}\nTickets: {booked_tickets}'
+    recipient_list = [user_email]
+    try:
+        send_mail(subject, message, settings.EMAIL_HOST_USER, recipient_list)
+        # print('Send email for booking complete!')
+        return True
+    except Exception as e:
+        print(f'Failed to send email. Error: {str(e)}')
+        return False

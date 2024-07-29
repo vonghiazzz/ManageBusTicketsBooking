@@ -11,6 +11,10 @@
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         
+        <!-- ckeditor to interface word -->
+        <script type="text/javascript" src="{% static 'ckeditor/ckeditor-init.js' %}"></script>
+        <script type="text/javascript" src="{% static 'ckeditor/ckeditor/ckeditor.js' %}"></script>
+    
         <!--css-->
         <link rel="stylesheet" style="text/css" href="{%static '/app/css/main.css' %}" rel="stylesheet"/>
         <link rel="stylesheet" style="text/css" href="{%static '/app/css/chatbox.css' %}" rel="stylesheet"/>
@@ -74,25 +78,16 @@
                       {% if is_driver %}
                       <li class="nav-item">
                           <a class="nav-link" href="{% url 'schedule' %}">Schedule</a>
-                      </li>
+                      </li>        
                       {% endif %}
-                      {% comment %} <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Range of vehicle
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                          <li><a class="dropdown-item" href="#">Bed</a></li>
-                          <li><a class="dropdown-item" href="#">Seat</a></li>
-                          <li><hr class="dropdown-divider"></li>
-                          <li><a class="dropdown-item" href="#">Limousine</a></li>
-                        </ul>
-                      </li> {% endcomment %}
+                      {% if not is_driver %}
                       <li class="nav-item">
+                          <a class="nav-link" href="{% url 'overviewFeedback'%}">Overview Feedback</a>
+                      </li>        
+                      {% endif %}
+                      <li>
                         <a class="nav-link" href="{%url 'about_us'%}">About Us</a>
                       </li>
-                      {% comment %} <li class="nav-item">
-                        <a class="nav-link" href="#">Contact</a>
-                      </li> {% endcomment %}
                     </ul>
                     
                   </div>
@@ -100,11 +95,13 @@
                     <li class="nav-item dropdown">
                       <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                           {%if request.user.first_name%}
-                           Hello, {{request.user.first_name}}!
+                           Welcome, {{request.user.first_name}}!
+                          {%elif request.user.username %}
+                          Welcome,  {{request.user.username}}!
                           {%else%}
-                          Hello, {{request.user}}!
+                          Welcome!
                           {%endif%}
-                          
+
                           {% comment %} {{request.user.active}} {% endcomment %}
                           {% comment %} {{request.user.password}} {% endcomment %}
 
@@ -115,9 +112,7 @@
                       </a>
                       <ul class="dropdown-menu" style="visibility: {{user_login}}" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="{%url 'profile'%}">Profile</a></li>
-                        {% if not is_driver %}
                         <li><a class="dropdown-item" href="{%url 'history'%}">History</a></li>
-                        {% endif %}
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item"  href="{%url 'logout'%}">Logout</a></li>
                       </ul>
@@ -154,6 +149,11 @@
         {% block history_content %}{% endblock history_content %}
         {% block content_checkout %}{% endblock content_checkout %}
         {% block schedule %}{% endblock schedule %}
+        {% block feedback %}{% endblock feedback %}
+        {% block change_password %}{% endblock change_password %}
+        {% block passenger_list %}{% endblock passenger_list %}
+        {% block reportVehicle %}{% endblock reportVehicle %}
+        {% block confirm %}{% endblock confirm %}
 
        <!-- Chatbox -->
     <button class="chatbox-open">
