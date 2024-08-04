@@ -122,6 +122,22 @@ class DriverAdmin(admin.ModelAdmin):
             obj.set_password(form.cleaned_data['password'])
         super().save_model(request, obj, form, change)
 
+
+class SalaryForm(forms.ModelForm):
+    class Meta:
+        model= Salary 
+        fields='__all__'
+        labels = {
+            'totalDistance': 'Total Distance', 
+            'idDriver':'ID Driver',
+        } 
+
+class SalaryAdmin(admin.ModelAdmin):
+    form = SalaryForm
+    list_display=["id","month","totalDistance","idDriver"] 
+    search_fields= ["id","idDriver","month"] 
+    # list_filter = ["idRole"]
+
 class UserAdmin(admin.ModelAdmin):
     list_display=["id","username","email","img"] 
     
@@ -234,6 +250,16 @@ class TickAdmin(admin.ModelAdmin):
     #     return "(No image)"
 
     
+class BookForm(forms.ModelForm):
+    class Meta:
+            model= Booking
+            fields='__all__'
+            labels = {
+                'idCustomer':'ID Customer',
+                'idTicket':'ID Ticket',
+             
+                # Các nhãn khác nếu cần
+            }
 
 
 
@@ -246,6 +272,7 @@ class BookAdmin(admin.ModelAdmin):
         js={
             # 'all':('/static/css/main.css',) 
         }
+    form = BookForm
     actions = ['delete_selected']
     def delete_selected(self, request, queryset):
         for booking in queryset:
@@ -318,6 +345,12 @@ class RouteAdminForm(forms.ModelForm):
     class Meta:
         model = Route
         fields = '__all__'
+        labels = {
+                'startPoint':'Start Point',
+                'endPoint':'End Point',
+             
+                # Các nhãn khác nếu cần
+            }
 
 
 class RouteAdmin(admin.ModelAdmin):
@@ -417,7 +450,7 @@ class TripAdmin(admin.ModelAdmin):
     #Show ra những filter của Ticket
     list_filter = ["active"]
     #Thêm trường img
-    readonly_fields=["hours","reserved_Seats", "total_Seats"]
+    readonly_fields=["hours","reserved_Seats", "total_Seats","distance"]
     # actions = ['delete_selected']
     # def delete_selected(self, request, queryset):
     #     for booking in queryset:
@@ -490,29 +523,8 @@ admin_site.register(Booking,BookAdmin)
 admin_site.register(User, UserAdmin)
 admin_site.register(Route, RouteAdmin)
 admin_site.register(Feedback, FeedbackAdmin)
+admin_site.register(Salary, SalaryAdmin)
 
 admin_site.register(Group)
 admin_site.register(Permission)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

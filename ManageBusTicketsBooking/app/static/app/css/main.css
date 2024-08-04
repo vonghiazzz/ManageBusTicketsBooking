@@ -100,12 +100,18 @@ h1,h2,h3,h4,h5,h6{
 }
 
 
-
 .container {
-    border: 1px solid #8DC63F; /* Màu xanh lá nhạt */
-    border-radius: 5px; /* Bo tròn góc */
-    padding: 20px; /* Khoảng cách lề bên trong */
-}
+    padding: 20px; 
+    /* width: 100% !important; */
+
+} 
+
+.box {
+  border: 1px solid #06a313;
+  border-radius: 5px;
+  padding: 20px; 
+} 
+
 
 .form-check-label {
     margin-right: 20px; /* Khoảng cách giữa các label trong form-check */

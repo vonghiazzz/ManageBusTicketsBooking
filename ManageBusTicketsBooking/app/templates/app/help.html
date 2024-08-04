@@ -1,0 +1,88 @@
+{% extends "app/base.html" %}
+{% load static %}
+
+{% block title %}
+    <title>Guide Page</title>
+{% endblock title %}
+
+{% block main-content %}
+<div class="container mt-3" style="width:100% !important;">
+    <h1>Guide for Using the Website</h1>
+    {% if not is_admin and not is_driver %}
+    {% comment %} <div class="container"> {% endcomment %}
+        <h5>Welcome, Customer! Here you will find the instructions to use our website:</h5>
+        <p><b>How to book ticket?</b></p>
+        <ul>
+            <li class="py-2"><strong>Step 1: </strong>Go to the home page, scroll down, and choose a trip</li>
+            <div class="text-center">
+                <img width="80%" src="{% static 'app/images/home1.png' %}" alt="Home page"/>
+            </div>
+            <li class="py-3"><strong>Step 2: </strong>Click on the "booking" button of the trip you want to book</li>
+            <div class="text-center">
+                <img width="80%" src="{% static 'app/images/booking1.png' %}" alt="Booking button"/>
+            </div>
+            <li class="py-3"><strong>Step 3: </strong>On the booking page, fill in all required information and select an available seat</li>
+            <div class="text-center">
+                <img width="80%" src="{% static 'app/images/bookingPage.png' %}" alt="Booking page"/>
+            </div>
+            <li class="py-3"><strong>Step 4: </strong>After filling in the information and selecting a seat, click the "Confirm" button</li>
+            <div class="text-center">
+                <img width="80%" src="{% static 'app/images/bookingConfirm.png' %}" alt="Booking Confirm"/>
+            </div>
+            <li class="py-3"><strong>Step 5: </strong>When the website notifies you that the booking is successful, click "Go to Home Page" to return to the home page</li>
+            <div class="text-center">
+                <img width="80%" src="{% static 'app/images/confirmPage.png' %}" alt="Confirm page"/>
+            </div>
+        </ul>
+    {% comment %} </div> {% endcomment %}
+    {%endif%}
+
+    {%if is_driver%}
+    {% comment %} <div class="container"> {% endcomment %}
+        <h5>Welcome, Driver! Here you will find the instructions to use our website:</h5>
+        <p><b>How to see schedule?</b></p>
+        <ul>
+            <li class="py-2"><strong>Step 1: </strong>First, you need to log in to the account provided</li>
+            <div class="text-center">
+                <img width="80%" src="{% static 'app/images/loginDriver.png' %}" alt="Login page"/>
+            </div>
+            <li class="py-3"><strong>Step 2: </strong>After you log in successfully, the website will display the schedule page</li>
+            <div class="text-center">
+                <img width="80%" src="{% static 'app/images/scheduleDriver.png' %}" alt="Schedule of Driver"/>
+            </div>
+            <li class="py-3"><strong>Step 3: </strong>Besides, you can also view passengers or report vehicle</li>
+            <div class="text-center">
+                <img width="80%" src="{% static 'app/images/actionSchedule.png' %}" alt="Actions in Schedule"/>
+            </div>
+        </ul>
+        <p><b>How to see history?</b></p>
+        <ul>
+            <li class="py-2"><strong>Step 1: </strong>First, you need to log in to the account provided and on the schedule page, select "Welcome, username!"</li>
+            <div class="text-center">
+                <img width="80%" src="{% static 'app/images/welcomeSchedule.png' %}" alt="Login page"/>
+            </div>
+            <li class="py-3"><strong>Step 2: </strong>After you click, it will show the options and you click on history</li>
+            <div class="text-center">
+                <img width="80%" src="{% static 'app/images/historyDriver.png' %}" alt="Schedule of Driver"/>
+            </div>
+            <li class="py-3"><strong>Step 3: </strong>This is the history interface</li>
+            <div class="text-center">
+                <img width="80%" src="{% static 'app/images/historyPage.png' %}" alt="Actions in Schedule"/>
+            </div>
+        </ul>
+    {% comment %} </div> {% endcomment %}
+    {%endif%}
+
+</div>
+
+<div class="row justify-content-center pb-2">
+    <div class="col-auto action-link-wrap">
+        <a onclick="history.back(-1)" class="btn btn-outline-primary me-2">
+            <i class="bi bi-arrow-left"></i> Go Back
+        </a>
+        <a href="{% url 'home' %}" class="btn btn-primary">
+            Go to Home Page <i class="bi bi-house"></i>
+        </a>
+    </div>
+</div>
+{% endblock main-content %}

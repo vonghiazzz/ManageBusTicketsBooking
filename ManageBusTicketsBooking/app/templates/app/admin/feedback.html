@@ -8,39 +8,48 @@
 {% block history_content %}
 <div class="container">
     <h2>Feedback from Customers</h2>
-    {% if booked_tickets %}
         <div class="row">
-            {% for item in booked_tickets %}
-                {% if item.is_date %}
-                    <div class="col-12 mb-4">
-                        <h3>{{ item.date }}</h3>
-                    </div>
-                {% else %}
-                    <div class="col-md-4 mb-4">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">Ticket ID: {{ item.ticket.id }}</h5>
-                                <h5 class="card-title">Image: 
-                                    {% if item.ticket.img %}
-                                        <img class="rounded-circle mt-5" width="220px" src="{% static item.ticket.img.url %}" alt="{{ item.ticket.name }}">
-                                    {% else %}
-                                        <h5>Not found image</h5>
-                                    {% endif %} 
-                                </h5>
-                                <h5 class="card-title">Ticket Name: {{ item.ticket.name }}</h5>
-                                <p class="card-text">Seat Number: {{ item.ticket.idSeatNumber }}</p>
-                                <p class="card-text">Trip Name: {{ item.ticket.idTrip.name }}</p>
-                                <h5 class="card-title">Ticket Status: {{ item.ticket.status }}</h5>
-                                <h5 class="card-title">Booking Status: {{ item.booking.status }}</h5>
-                                <a href="{% url 'feedback' trip_id=item.ticket.idTrip.id %}">Feedback</a>
-                            </div>
-                        </div>
-                    </div>
-                {% endif %}
-            {% endfor %}
+            {% if booked_tickets %}
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col" class="text-center">ID Ticket</th>
+                        <th scope="col" class="text-center">Trip</th>
+                        <th scope="col" class="text-center">Departure Time</th>
+                        <th scope="col" class="text-center">Arrival Time</th>
+                        {% comment %} <th scope="col" class="text-center">Seat Number</th> {% endcomment %}
+                        <th scope="col" class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in booked_tickets %}
+                    {% if item.is_date %}
+                    {% else %}
+                    <tr>
+                        <th scope="row" class="text-center">{{ item.ticket.id }}</th>
+                        <td class="text-center">{{ item.ticket.idTrip.name }}</td>
+                        <td class="text-center">{{ item.ticket.idTrip.departure_Time }}</td>
+                        <td class="text-center">{{ item.ticket.idTrip.arrival_Time }}</td>
+                        {% comment %} <td class="text-center">{{ item.ticket.idSeatNumber.seat_number }}</td> {% endcomment %}
+                        <td class="text-center">
+                            <button onclick="window.location.href='{% url 'feedback' trip_id=item.ticket.idTrip.id %}'" class="btn btn-primary">
+                                Feedback
+                            </button>
+                        </td>
+                        
+                       
+
+                    </tr>
+                    {% endif %}
+
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     {% else %}
-        <p>No tickets have been booked yet.</p>
+    <tr>
+        <th colspan="6" class="text-center">No feedbacks available.</th>
+    </tr>
     {% endif %}
     <div class="row justify-content-center">
         <div class="col-auto action-link-wrap">

@@ -1,234 +1,50 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat with Rasa</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: "Lato", sans-serif;
-            background-color: #f6f7f9;
-        }
+{% extends 'app/base.html' %}
+{% load static %}
 
-        h1 {
-            margin: 0;
-            font-size: 16px;
-            line-height: 1;
-        }
+{% block title %}
+    <title>Feedback Admin Page</title>
+{% endblock title %}
 
-        button {
-            color: inherit;
-            background-color: transparent;
-            border: 0;
-            outline: 0 !important;
-            cursor: pointer;
-        }
-
-        button.chatbox-open,
-        button.chatbox-close,
-        button.chatbox-maximize,
-        button.chatbox-minimize,
-        button.chatbox-panel-close {
-            position: fixed;
-            bottom: 16px;
-            right: 16px;
-            width: 52px;
-            height: 52px;
-            color: #fff;
-            background-color: #0360a5;
-            background-position: center center;
-            background-repeat: no-repeat;
-            box-shadow: 12px 15px 20px 0 rgba(46, 61, 73, 0.15);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        button.chatbox-close,
-        button.chatbox-maximize,
-        button.chatbox-minimize,
-        button.chatbox-panel-close {
-            display: none;
-        }
-
-        .chatbox-popup,
-        .chatbox-panel {
-            display: none;
-            position: absolute;
-            box-shadow: 5px 5px 25px 0 rgba(46, 61, 73, 0.2);
-            flex-direction: column;
-            bottom: calc(2 * 16px + 52px);
-            right: 16px;
-            width: 377px;
-            background-color: #fff;
-            border-radius: 16px;
-        }
-
-        .chatbox-popup__header,
-        .chatbox-panel__header {
-            display: flex;
-            width: 100%;
-            padding: 16px;
-            color: #fff;
-            background-color: #0360a5;
-            align-items: center;
-            justify-content: space-around;
-            box-sizing: border-box;
-        }
-
-        .chatbox-popup__main,
-        .chatbox-panel__main {
-            box-sizing: border-box;
-            width: 100%;
-            padding: calc(2 * 16px) 16px;
-            overflow-y: auto; /* Thêm thanh cuộn khi tin nhắn quá dài */
-            max-height: 300px; /* Giới hạn chiều cao của tin nhắn */
-            line-height: calc(16px + 16px / 2);
-            color: #888;
-            text-align: center;
-        }
-
-        .chatbox-popup__footer,
-        .chatbox-panel__footer {
-            display: flex;
-            width: 100%;
-            padding: 16px;
-            border-top: 1px solid #ddd;
-            align-items: center;
-            justify-content: space-around;
-            box-sizing: border-box;
-        }
-
-        .chatbox-popup__avatar,
-        .chatbox-panel__avatar {
-            margin-top: -32px;
-            background-color: #0360a5;
-            border: 5px solid rgba(0, 0, 0, 0.1);
-            border-radius: 50%;
-        }
-
-        .chat-message {
-            background-color: #b2d4f0; /* Màu nền của tin nhắn */
-            margin: 8px; /* Khoảng cách giữa các tin nhắn */
-            padding: 10px; /* Khoảng cách lề trong tin nhắn */
-            border-radius: 8px; /* Độ cong của các góc */
-            text-align: left; /* Căn lề văn bản sang trái */
-            max-width: 80%; /* Giới hạn chiều rộng của tin nhắn */
-            word-wrap: break-word; /* Tách từ khi vượt quá chiều rộng */
-            clear: both; /* Xóa bất kỳ dòng lề nào */
-        }
-
-        .chat-message-user {
-            float: right; /* Căn tin nhắn của người dùng sang phải */
-            background-color: #4caf50; /* Màu nền tin nhắn của người dùng */
-            color: white; /* Màu chữ của người dùng */
-        }
-
-        .chat-message-bot {
-            float: left; /* Căn tin nhắn của bot sang trái */
-            background-color: #e7e7e7; /* Màu nền tin nhắn của bot */
-            color: black; /* Màu chữ của bot */
-        }
-    </style>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-</head>
-<body>
-    <button class="chatbox-open">
-        <i class="fa fa-comment fa-2x" aria-hidden="true"></i>
-    </button>
-    <button class="chatbox-close">
-        <i class="fa fa-close fa-2x" aria-hidden="true"></i>
-    </button>
-    <section class="chatbox-popup">
-        <header class="chatbox-popup__header">
-            <aside style="flex:3">
-                <i class="fa fa-user-circle fa-4x chatbox-popup__avatar" aria-hidden="true"></i>
-            </aside>
-            <aside style="flex:8">
-                <h1>ChatBox</h1>
-            </aside>
-            <aside style="flex:1">
-                <button class="chatbox-maximize"><i class="fa fa-window-maximize" aria-hidden="true"></i></button>
-            </aside>
-        </header>
-        <main class="chatbox-popup__main" id="chat-container-user">
-            <!-- Đây là nơi hiển thị tin nhắn của người dùng -->
-        </main>
-        <footer class="chatbox-popup__footer">
-            <aside style="flex:10">
-                <textarea type="text" placeholder="Type your message here..." id="message-input" autofocus></textarea>
-            </aside>
-            <aside style="flex:1;color:#888;text-align:center;">
-                <button id="send-button"><i class="fa fa-paper-plane" aria-hidden="true"></i></button>
-            </aside>
-        </footer>
-    </section>
-    <script>
-        $(document).ready(function () {
-            $(".chatbox-open").click(function () {
-                $(".chatbox-popup, .chatbox-close").fadeIn();
-                $(".chatbox-open").fadeOut();
-            });
-
-            $(".chatbox-close").click(function () {
-                $(".chatbox-popup, .chatbox-close").fadeOut();
-                $(".chatbox-open").fadeIn();
-            });
-
-            $(".chatbox-maximize").click(function () {
-                $(".chatbox-popup, .chatbox-open, .chatbox-close").fadeOut();
-                $(".chatbox-panel").fadeIn().css({ display: "flex" });
-            });
-
-            $(".chatbox-panel-close").click(function () {
-                $(".chatbox-panel").fadeOut();
-                $(".chatbox-open").fadeIn();
-            });
-
-            $('#send-button').click(function() {
-                sendMessage($('#message-input').val().trim(), document.getElementById('chat-container-user'));
-            });
-
-            function displayMessage(user, message, container) {
-                const messageElement = document.createElement('div');
-                messageElement.classList.add('chat-message', `chat-message-${user.toLowerCase()}`);
-                const now = new Date();
-                const time = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
-                messageElement.innerHTML = `<strong>${user} (${time}):</strong> ${message}`;
-                container.appendChild(messageElement);
-                container.scrollTop = container.scrollHeight;
-            }
-
-            function sendMessage(message, container) {
-                if (message === '') return;
-
-                displayMessage('You', message, container);
-
-                fetch('http://localhost:5005/webhooks/rest/webhook', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        sender: 'user',
-                        message: message
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    const botResponse = data[0].text;
-                    displayMessage('Bot', botResponse, container);
-                })
-                .catch(error => console.error('Error:', error));
-
-                // Xóa nội dung trong ô nhập liệu sau khi gửi
-                $('#message-input').val('');
-            }
-        });
-    </script>
-</body>
-</html>
+{% block history_content %}
+<div class="container">
+    <h2>Feedback from Customers</h2>
+    {% if booked_tickets %}
+        <div class="row">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col" class="text-center">ID Ticket</th>
+                        <th scope="col" class="text-center">Trip</th>
+                        <th scope="col" class="text-center">Departure Time</th>
+                        <th scope="col" class="text-center">Arrival Time</th>
+                        <th scope="col" class="text-center">Seat Number</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in booked_tickets %}
+                    <tr>
+                        <th scope="row" class="text-center">{{ item.ticket.id }}</th>
+                        <td class="text-center">{{ item.ticket.idTrip.name }}</td>
+                        <td class="text-center">{{ item.ticket.idTrip.departure_Time }}</td>
+                        <td class="text-center">{{ item.ticket.idTrip.arrival_Time }}</td>
+                        <td class="text-center">{{ item.ticket.idSeatNumber.seat_number }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>No tickets have been booked yet.</p>
+    {% endif %}
+    <div class="row justify-content-center">
+        <div class="col-auto action-link-wrap">
+            <a onclick="history.back(-1)" class="btn btn-outline-primary me-2">
+                <i class="bi bi-arrow-left"></i> Go Back
+            </a>
+            <a href="{% url 'home' %}" class="btn btn-primary">
+                Go to Home Page <i class="bi bi-house"></i>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock history_content %}

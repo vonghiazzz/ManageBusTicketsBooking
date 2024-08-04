@@ -6,7 +6,7 @@
 {% endblock title %}
 
 {% block feedback %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/feedbackCustomer.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'app/css/feedbackCustomer.css' %}">
 
 <div class="container mt-4">
     <h2>Feedback page</h2>
@@ -26,7 +26,7 @@
                         {% endif %}
                         on {{ feedback.feedback_date }}
                     </small>
-                    <p>Trip: {{ feedback.idTrip.departure_Station }} - {{ feedback.idTrip.ending_Station }}</p>
+                    <p>Trip: {{ feedback.idTrip.departure_name }} - {{ feedback.idTrip.ending_name }}</p>
                 </div>
             {% endfor %}
         </div>

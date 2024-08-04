@@ -6,7 +6,7 @@
 {% endblock title %}
 
 {% block confirm %}
-<div class="container mt-4">
+<div class="container box mt-4">
     <h2>Payment Confirmation</h2>
     {% if messages %}
         {% for message in messages %}
@@ -19,7 +19,7 @@
     <h3>Selected tickets:</h3>
     <ul>
         {% for ticket in booked_tickets %}
-            <li>{{ ticket.idSeatNumber }} - {{ ticket.idTrip.departure_Station }} đến {{ ticket.idTrip.ending_Station }}</li>
+            <li>{{ ticket.idSeatNumber }} - {{ ticket.idTrip.departure_name }} đến {{ ticket.idTrip.ending_name }}</li>
         {% endfor %}
     </ul>
     <div class="row justify-content-center">

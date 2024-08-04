@@ -6,9 +6,9 @@ from .admin import admin_site
 urlpatterns = [
     path('admin/',admin_site.urls, name="admin"),
     path('statistics/', views.statistics, name='statistics'),
-    path('statistics/<>', views.statistics, name='statistics'),
+    # path('statistics/<>', views.statistics, name='statistics'),
 
-
+    path('help/', views.help, name="help"),
     path('', views.index, name="home"),
     path('about_us/', views.aboutUs, name="about_us"),
     path('search/', views.search, name="search"),

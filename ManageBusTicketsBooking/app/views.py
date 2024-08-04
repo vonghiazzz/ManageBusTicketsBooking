@@ -26,6 +26,27 @@ from dateutil.relativedelta import relativedelta
 from django.utils.timezone import now
 
 
+
+def help(request):
+    if request.user.is_authenticated:
+        user_not_login ="hidden"
+        user_login = "show" 
+    else:
+        user_not_login ="show"
+        user_login = "hidden"
+    is_driver = hasattr(request.user, 'driver')
+    is_customer = hasattr(request.user, 'customer')
+    is_admin = request.user.is_superuser
+    context = {
+        'is_driver':is_driver,
+        'is_admin':is_admin,
+        'is_customer':is_customer,
+        'user_not_login': user_not_login,
+        'user_login':user_login,
+    }
+    return render(request,"app/help.html",context)
+
+
 def scheduleDriver(request):
     if request.user.is_authenticated:
         user_not_login = "hidden"
@@ -52,8 +73,9 @@ def scheduleDriver(request):
 #         user_login = "show"
 #         is_driver = hasattr(request.user, 'driver')
 #         if request.user.is_superuser:
+#             # trips = Trip.objects.all()
+#             routes = Route.objects.all()
 
-#             trips = Trip.objects.all()
 #             data = []
 #             data1=[]
         
@@ -61,15 +83,18 @@ def scheduleDriver(request):
 #             current_month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 #             # last_month_start = (timezone.now() - relativedelta(months=1)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
-#             for trip in trips:
+#             # for trip in trips:
+#             for route in routes:
+
 #                 # Đếm số lượng đặt chỗ cho mỗi chuyến đi trong tháng hiện tại và tháng trước đó
 #                 current_month_bookings = Booking.objects.filter(
-#                     idTicket__idTrip=trip,
+#                     # idTicket__idTrip=trip,
+#                     idTicket__idTrip__id_Route=route,
 #                     bookingDate__gte=current_month_start,
 #                     bookingDate__lt=current_month_start + relativedelta(months=1)
 #                 ).count()
-#                 print(current_month_start)
-#                 print(current_month_start + relativedelta(months=1))
+#                 # print(current_month_start)
+#                 # print(current_month_start + relativedelta(months=1))
 #                 # last_month_bookings = Booking.objects.filter(
 #                 #     idTicket__idTrip=trip,
 #                 #     bookingDate__gte=last_month_start,
@@ -78,7 +103,8 @@ def scheduleDriver(request):
 
 #                 # Tính tổng doanh thu cho mỗi chuyến đi trong tháng hiện tại và tháng trước đó
 #                 current_month_revenue = Booking.objects.filter(
-#                     idTicket__idTrip=trip,
+#                     # idTicket__idTrip=trip,
+#                     idTicket__idTrip__id_Route=route,
 #                     bookingDate__gte=current_month_start,
 #                     bookingDate__lt=current_month_start + relativedelta(months=1)
 #                 ).aggregate(total_revenue=Sum('idTicket__idTrip__price'))['total_revenue'] or 0
@@ -90,7 +116,8 @@ def scheduleDriver(request):
 #                 # ).aggregate(total_revenue=Sum('idTicket__idTrip__price'))['total_revenue'] or 0
 
 #                 data.append({
-#                         'trip': trip.name(),
+#                         # 'trip': trip.name(),
+#                         'route': f"{route.startPoint} - {route.endPoint}",
 #                         'current_month_bookings': current_month_bookings,
 #                         # 'last_month_bookings': last_month_bookings,
 #                         'current_month_revenue': current_month_revenue,
@@ -126,10 +153,6 @@ def scheduleDriver(request):
 #         'error_message': 'You must login before view.'
 #     }, status=403)
 
-from datetime import datetime, timezone as dt_timezone
-
-    
-
 
 @login_required(login_url='/login/')
 def statistics(request):
@@ -138,44 +161,60 @@ def statistics(request):
         user_login = "show"
         is_driver = hasattr(request.user, 'driver')
         if request.user.is_superuser:
-            month = request.GET.get('month', timezone.now().month)
-            year = request.GET.get('year', timezone.now().year)
+            # Get month and year from request
+            month = request.GET.get('month')
+            year = request.GET.get('year')
+            
+            if month and year:
+                try:
+                    selected_month_start = timezone.datetime(int(year), int(month), 1)
+                except ValueError:
+                    return JsonResponse({'error': 'Invalid date'}, status=400)
+            else:
+                # Default to current month if no date is provided
+                selected_month_start = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            
+            routes = Route.objects.all()
 
-            # Chuyển đổi tháng và năm thành datetime
-            selected_month_start = datetime(int(year), int(month), 1, tzinfo=dt_timezone.utc)
-            next_month_start = (selected_month_start + relativedelta(months=1))
-
-            trips = Trip.objects.all()
             data = []
-            data1=[]
+            data1 = []
 
-            for trip in trips:
+            for route in routes:
                 current_month_bookings = Booking.objects.filter(
-                    idTicket__idTrip=trip,
+                    idTicket__idTrip__id_Route=route,
                     bookingDate__gte=selected_month_start,
-                    bookingDate__lt=next_month_start
+                    bookingDate__lt=selected_month_start + relativedelta(months=1)
                 ).count()
 
                 current_month_revenue = Booking.objects.filter(
-                    idTicket__idTrip=trip,
+                    idTicket__idTrip__id_Route=route,
                     bookingDate__gte=selected_month_start,
-                    bookingDate__lt=next_month_start
+                    bookingDate__lt=selected_month_start + relativedelta(months=1)
                 ).aggregate(total_revenue=Sum('idTicket__idTrip__price'))['total_revenue'] or 0
 
                 data.append({
-                    'trip': trip.name(),
+                    'route': f"{route.startPoint} - {route.endPoint}",
                     'current_month_bookings': current_month_bookings,
                     'current_month_revenue': current_month_revenue,
                 })
 
             current_month_total = Booking.objects.filter(
                 bookingDate__gte=selected_month_start,
-                bookingDate__lt=next_month_start
+                bookingDate__lt=selected_month_start + relativedelta(months=1)
             ).aggregate(total_revenue=Sum('idTicket__idTrip__price'))['total_revenue'] or 0
 
             data1.append({
                 'current_month_total': current_month_total,
             })
+
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                response_data = {
+                    'data': data,
+                    'data1': data1
+                }
+                logger.info(f"Response Data: {response_data}")
+                return JsonResponse(response_data)
+
 
             context = {
                 'data': data,
@@ -196,127 +235,6 @@ def statistics(request):
         'error_message': 'You must login before view.'
     }, status=403)
 
-
-
-# @login_required(login_url='/login/')
-# def feedbackAdmin(request):
-#     if request.user.is_authenticated:
-#         user_not_login = "hidden"
-#         user_login = "show"
-#         is_driver = hasattr(request.user, 'driver')
-
-#         if request.user.is_superuser:
-#             # Lấy danh sách các booking có feedback sử dụng Subquery
-#             bookings_with_feedback = Booking.objects.filter(
-#                 id__in=Subquery(
-#                     Feedback.objects.filter(idBooking=OuterRef('id')).values('idBooking')
-#                 )
-#             )
-#             booked_tickets = []
-#             for booking in bookings_with_feedback:
-#                 ticket = booking.idTicket
-#                 if ticket and ticket.status:
-#                     booked_tickets.append({
-#                         'ticket': ticket,
-#                         'booking': booking,
-#                     })
-
-#             context = {
-#                 'user_not_login': user_not_login,
-#                 'user_login': user_login,
-#                 'booked_tickets': booked_tickets,
-#                 'is_driver': is_driver,
-#             }
-#             return render(request, 'app/admin/feedback.html', context)
-                
-#         else:
-#             return render(request, 'app/errors.html', {
-#                 'error_code': 403,
-#                 'error_message': 'You do not have access.'
-#             }, status=403)
-
-#     return render(request, 'app/errors.html', {
-#         'error_code': 403,
-#         'error_message': 'You must login before feedback.'
-#     }, status=403)
-
-# @login_required(login_url='/login/')
-# def feedbackAdmin(request):
-#     if request.user.is_authenticated:
-#         user_not_login = "hidden"
-#         user_login = "show"
-#         is_driver = hasattr(request.user, 'driver')
-
-#         if request.user.is_superuser:
-#             booked_tickets = Booking.objects.all()  # Lấy tất cả các vé đã đặt, hoặc lọc theo điều kiện phù hợp
-#             trips_with_feedback = Trip.objects.filter(
-#                 id__in=Subquery(
-#                     Feedback.objects.filter(idTrip=OuterRef('id')).values('idTrip')
-#                 )
-#             )
-            
-#             context = {
-#                 'user_not_login': user_not_login,
-#                 'user_login': user_login,
-#                 'booked_tickets': booked_tickets,
-#                 'trips_with_feedback': trips_with_feedback,
-#                 'is_driver': is_driver,
-#             }
-#             return render(request, 'app/admin/feedback.html', context)
-                
-#         else:
-#             return render(request, 'app/errors.html', {
-#                 'error_code': 403,
-#                 'error_message': 'You do not have access.'
-#             }, status=403)
-
-#     return render(request, 'app/errors.html', {
-#         'error_code': 403,
-#         'error_message': 'You must login before feedback.'
-#     }, status=403)
-
-
-# @login_required(login_url='/login/')
-# def feedbackAdmin(request):
-#     if request.user.is_authenticated:
-#         user_not_login = "hidden"
-#         user_login = "show"
-#         is_driver = hasattr(request.user, 'driver')
-
-#         if request.user.is_superuser:
-#             bookings = Booking.objects.all().order_by('-idTicket__idTrip__departure_Time')  # Lấy tất cả các vé đã đặt, hoặc lọc theo điều kiện phù hợp
-#             booked_tickets = []
-#             seen_trips = set()
-
-#             for booking in bookings:
-#                 ticket = booking.idTicket
-#                 trip = ticket.idTrip if ticket else None
-#                 if trip and trip.id not in seen_trips:
-#                     if ticket and ticket.status:
-#                         booked_tickets.append({
-#                             'ticket': ticket,
-#                             'booking': booking,
-#                         })
-#                         seen_trips.add(trip.id)  # Đánh dấu trip đã được thêm vào
-
-#             context = {
-#                 'user_not_login': user_not_login,
-#                 'user_login': user_login,
-#                 'booked_tickets': booked_tickets,
-#                 'is_driver': is_driver,
-#             }
-#             return render(request, 'app/admin/feedback.html', context)
-                
-#         else:
-#             return render(request, 'app/errors.html', {
-#                 'error_code': 403,
-#                 'error_message': 'You do not have access.'
-#             }, status=403)
-
-#     return render(request, 'app/errors.html', {
-#         'error_code': 403,
-#         'error_message': 'You must login before feedback.'
-#     }, status=403)
 @login_required(login_url='/login/')
 def feedbackAdmin(request):
     if request.user.is_authenticated:
@@ -427,18 +345,21 @@ def feedback(request, trip_id):
 
 
 
-@login_required(login_url='/login/')
+# @login_required(login_url='/login/')
 def overviewFeedback(request):
-    if request.user.is_authenticated:
-        if request.user.is_superuser or hasattr(request.user, 'customer'):
+    # if request.user.is_authenticated:
+        # if request.user.is_superuser or hasattr(request.user, 'customer'):
             is_driver = hasattr(request.user, 'driver')
             is_customer = hasattr(request.user, 'customer')
+            if request.user.is_authenticated:
+                user_not_login = "hidden"
+                user_login = "show"
+            else:
+                user_not_login ="show"
+                user_login = "hidden" 
 
-            user_not_login = "hidden"
-            user_login = "show"
-        
             feedbacks = Feedback.objects.select_related('idTrip').all()
-            
+            print(feedbacks)
             context = {
                 'is_driver': is_driver,
                 'user_not_login': user_not_login,
@@ -448,16 +369,16 @@ def overviewFeedback(request):
             }
             
             return render(request, 'app/customer/overviewFeedback.html', context)
-        else:
-            return render(request, 'app/errors.html', {
-                            'error_code': 403,
-                            'error_message': 'You do not have access.'
-                        }, status=403)
-    else:
-        return render(request, 'app/errors.html', {
-            'error_code': 403,
-            'error_message': 'You must login before feedback.'
-        }, status=403)
+        # else:
+        #     return render(request, 'app/errors.html', {
+        #                     'error_code': 403,
+        #                     'error_message': 'You do not have access.'
+        #                 }, status=403)
+    # else:
+    #     return render(request, 'app/errors.html', {
+    #         'error_code': 403,
+    #         'error_message': 'You must login before feedback.'
+    #     }, status=403)
 
 
 
@@ -601,6 +522,9 @@ def confirm(request):
         'user_login': user_login,
     }
     return render(request, "app/customer/confirm.html", context)
+from datetime import datetime
+
+
 
 def search(request):
     if request.user.is_authenticated:
@@ -609,26 +533,39 @@ def search(request):
     else:
         user_not_login = "show"
         user_login = "hidden"
-    # is_driver = hasattr(request.user, 'driver')
 
     context = {
-        # 'is_driver':is_driver,
         'user_not_login': user_not_login,
         'user_login': user_login,
+        'routes': VIETNAM_PROVINCES,  # Đảm bảo VIETNAM_PROVINCES được thêm vào context
     }
     is_driver = hasattr(request.user, 'driver')
+
     if request.method == "POST":
         journeyType = request.POST.get('journeyType')
         start_point = request.POST.get('departure')
         end_point = request.POST.get('destination')
         departure_date = request.POST.get('departureDate')
         return_date = request.POST.get('returnDate', None)
-        number_of_tickets = int(request.POST.get('numberOfTickets'))
+        number_of_tickets = request.POST.get('numberOfTickets')
 
-        # Query routes based on start and end points
+        # Kiểm tra dữ liệu hợp lệ
+        if not (start_point and end_point and departure_date and number_of_tickets and journeyType):
+            context['error_message'] = "Please complete all information!"
+            return render(request, 'app/search.html', context)
+
+        number_of_tickets = int(number_of_tickets)
+         # Kiểm tra ngày hợp lệ
+        if journeyType == "true" and return_date:
+            departure_date_dt = datetime.strptime(departure_date, '%Y-%m-%d')
+            return_date_dt = datetime.strptime(return_date, '%Y-%m-%d')
+
+            if departure_date_dt > return_date_dt:
+                context['error_message'] = "Return date must be after the departure date!"
+                return render(request, 'app/search.html', context)
+
+        # Tiếp tục xử lý nếu dữ liệu hợp lệ
         routes = Route.objects.filter(startPoint=start_point, endPoint=end_point)
-        
-        # Query trips based on routes and departure date
         trips = Trip.objects.filter(
             id_Route__in=routes,
             departure_Time__date=departure_date,
@@ -666,7 +603,7 @@ def search(request):
                 })
 
         context.update({
-            'is_driver':is_driver,
+            'is_driver': is_driver,
             'trips': results,
             'return_trips': return_results,
             'departure': start_point,
@@ -674,10 +611,91 @@ def search(request):
             'departure_date': departure_date,
             'return_date': return_date,
             'number_of_tickets': number_of_tickets,
-            'journeyType':journeyType,
+            'journeyType': journeyType,
+            # 'routes':VIETNAM_PROVINCES,
+
         })
 
     return render(request, 'app/search.html', context)
+
+# def search(request):
+#     if request.user.is_authenticated:
+#         user_not_login = "hidden"
+#         user_login = "show"
+#     else:
+#         user_not_login = "show"
+#         user_login = "hidden"
+#     # is_driver = hasattr(request.user, 'driver')
+
+#     context = {
+#         # 'is_driver':is_driver,
+#         'user_not_login': user_not_login,
+#         'user_login': user_login,
+#     }
+#     is_driver = hasattr(request.user, 'driver')
+#     if request.method == "POST":
+#         journeyType = request.POST.get('journeyType')
+#         start_point = request.POST.get('departure')
+#         end_point = request.POST.get('destination')
+#         departure_date = request.POST.get('departureDate')
+#         return_date = request.POST.get('returnDate', None)
+#         number_of_tickets = int(request.POST.get('numberOfTickets'))
+
+
+
+#         # Query routes based on start and end points
+#         routes = Route.objects.filter(startPoint=start_point, endPoint=end_point)
+        
+#         # Query trips based on routes and departure date
+#         trips = Trip.objects.filter(
+#             id_Route__in=routes,
+#             departure_Time__date__gte=departure_date,
+#             total_Seats__gte=number_of_tickets
+#         ).select_related('id_Buses', 'id_Route').prefetch_related('Tickets')
+
+#         if return_date:
+#             return_routes = Route.objects.filter(startPoint=end_point, endPoint=start_point)
+#             return_trips = Trip.objects.filter(
+#                 id_Route__in=return_routes,
+#                 departure_Time__date=return_date,
+#                 total_Seats__gte=number_of_tickets
+#             ).select_related('id_Buses', 'id_Route').prefetch_related('Tickets')
+#         else:
+#             return_trips = []
+
+#         results = []
+#         for trip in trips:
+#             available_tickets = trip.total_Seats - trip.reserved_Seats
+#             if available_tickets >= number_of_tickets:
+#                 results.append({
+#                     'trip': trip,
+#                     'available_tickets': available_tickets,
+#                     'tickets': trip.Tickets.all(),
+#                 })
+
+#         return_results = []
+#         for return_trip in return_trips:
+#             available_tickets = return_trip.total_Seats - return_trip.reserved_Seats
+#             if available_tickets >= number_of_tickets:
+#                 return_results.append({
+#                     'trip': return_trip,
+#                     'available_tickets': available_tickets,
+#                     'tickets': return_trip.Tickets.all(),
+#                 })
+
+#         context.update({
+#             'is_driver':is_driver,
+#             'trips': results,
+#             'return_trips': return_results,
+#             'departure': start_point,
+#             'destination': end_point,
+#             'departure_date': departure_date,
+#             'return_date': return_date,
+#             'number_of_tickets': number_of_tickets,
+#             'journeyType':journeyType,
+#         })
+
+#     return render(request, 'app/search.html', context)
 
 
 @login_required(login_url='/login/')
@@ -1076,6 +1094,71 @@ def register(request):
     user_login = "hidden" 
     return render(request, 'app/register.html', {'form': form,'user_not_login': user_not_login, 'user_login': user_login})
 
+VIETNAM_PROVINCES = [
+    ('Hà Nội', 'Hà Nội'),
+    ('Hà Giang', 'Hà Giang'),
+    ('Cao Bằng', 'Cao Bằng'),
+    ('Bắc Kạn', 'Bắc Kạn'),
+    ('Tuyên Quang', 'Tuyên Quang'),
+    ('Lào Cai', 'Lào Cai'),
+    ('Điện Biên', 'Điện Biên'),
+    ('Lai Châu', 'Lai Châu'),
+    ('Sơn La', 'Sơn La'),
+    ('Yên Bái', 'Yên Bái'),
+    ('Hoà Bình', 'Hoà Bình'),
+    ('Thái Nguyên', 'Thái Nguyên'),
+    ('Lạng Sơn', 'Lạng Sơn'),
+    ('Quảng Ninh', 'Quảng Ninh'),
+    ('Bắc Giang', 'Bắc Giang'),
+    ('Phú Thọ', 'Phú Thọ'),
+    ('Vĩnh Phúc', 'Vĩnh Phúc'),
+    ('Bắc Ninh', 'Bắc Ninh'),
+    ('Hải Dương', 'Hải Dương'),
+    ('Hải Phòng', 'Hải Phòng'),
+    ('Hưng Yên', 'Hưng Yên'),
+    ('Thái Bình', 'Thái Bình'),
+    ('Hà Nam', 'Hà Nam'),
+    ('Nam Định', 'Nam Định'),
+    ('Ninh Bình', 'Ninh Bình'),
+    ('Thanh Hóa', 'Thanh Hóa'),
+    ('Nghệ An', 'Nghệ An'),
+    ('Hà Tĩnh', 'Hà Tĩnh'),
+    ('Quảng Bình', 'Quảng Bình'),
+    ('Quảng Trị', 'Quảng Trị'),
+    ('Thừa Thiên Huế', 'Thừa Thiên Huế'),
+    ('Đà Nẵng', 'Đà Nẵng'),
+    ('Quảng Nam', 'Quảng Nam'),
+    ('Quảng Ngãi', 'Quảng Ngãi'),
+    ('Bình Định', 'Bình Định'),
+    ('Phú Yên', 'Phú Yên'),
+    ('Khánh Hòa', 'Khánh Hòa'),
+    ('Ninh Thuận', 'Ninh Thuận'),
+    ('Bình Thuận', 'Bình Thuận'),
+    ('Kon Tum', 'Kon Tum'),
+    ('Gia Lai', 'Gia Lai'),
+    ('Đắk Lắk', 'Đắk Lắk'),
+    ('Đắk Nông', 'Đắk Nông'),
+    ('Đà Lạt', 'Đà Lạt'),
+    ('Bình Phước', 'Bình Phước'),
+    ('Tây Ninh', 'Tây Ninh'),
+    ('Bình Dương', 'Bình Dương'),
+    ('Đồng Nai', 'Đồng Nai'),
+    ('Bà Rịa - Vũng Tàu', 'Bà Rịa - Vũng Tàu'),
+    ('Thành phố Hồ Chí Minh', 'Thành phố Hồ Chí Minh'),
+    ('Long An', 'Long An'),
+    ('Tiền Giang', 'Tiền Giang'),
+    ('Bến Tre', 'Bến Tre'),
+    ('Trà Vinh', 'Trà Vinh'),
+    ('Vĩnh Long', 'Vĩnh Long'),
+    ('Đồng Tháp', 'Đồng Tháp'),
+    ('An Giang', 'An Giang'),
+    ('Kiên Giang', 'Kiên Giang'),
+    ('Cần Thơ', 'Cần Thơ'),
+    ('Hậu Giang', 'Hậu Giang'),
+    ('Sóc Trăng', 'Sóc Trăng'),
+    ('Bạc Liêu', 'Bạc Liêu'),
+    ('Cà Mau', 'Cà Mau'),
+    ]
 def index(request):
     if request.user.is_authenticated:
         user_not_login ="hidden"
@@ -1159,13 +1242,13 @@ def index(request):
             user_data = request.session.get('user_data')
             response = request.session.get('response')
             is_driver = hasattr(request.user, 'driver')
-
             context = {
                 'is_driver':is_driver,
                 'hcm_trips':filtered_hcm_trips,
                 'dl_trips':filtered_dl_trips,
                 'vt_trips':filtered_vt_trips,
 
+                'routes':VIETNAM_PROVINCES,
                 'all_buses':all_buses,
                 'all_trips':all_trips,
                 'user_not_login':user_not_login,
@@ -1262,19 +1345,23 @@ def booking(request, trip_id):
             user_email = request.user.email if request.user.is_authenticated else None
             if user_email:
                 send_email_booking(name, mobile, selected_tickets, user_email)
+            point = customer.point if customer else 0
+
             context = {
                 'name': name,
                 'phone': mobile,
                 'booked_tickets': booked_tickets,
                 'user_not_login': user_not_login,
                 'user_login': user_login,
-                # 'total_price': total_price,
-                # 'original_price': sum(ticket.idTrip.price for ticket in booked_tickets),
+                'discount_price': point,
             }
             return render(request, "app/customer/confirm.html", context)
         else:
             error_message = "Name and mobile number are required."
+            point = customer.point if customer else 0
+
             context = {
+                'discount_price': point,
                 'user_not_login': user_not_login,
                 'user_login': user_login,
                 'trip': trip,
@@ -1284,8 +1371,7 @@ def booking(request, trip_id):
             }
             return render(request, 'app/customer/booking.html', context)
         
-    point=customer.point
-    print("point: ", point)
+    point = customer.point if customer else 0
     context = {
         'user_not_login': user_not_login,
         'user_login': user_login,

@@ -10,7 +10,7 @@ from django.dispatch import receiver
 from django.contrib.auth.models import User
 from django import forms
 from django.db import IntegrityError, transaction
-
+import math
 #Cài thêm khi sử dụng CkEditor
 from ckeditor.fields import RichTextField
 
@@ -73,18 +73,24 @@ class Customer(User):
         ordering=["id"]
     point = models.FloatField(default=0, null=False, blank=False, max_length=10)
     def __str__(self):
-        return str(self.id)
+        return str(self.username)
 class Driver(User):
     class Meta:
         ordering=["id"]
     totalDrivingTime = models.FloatField(default=0, null=False, blank=False, max_length=10)
     totalSalary = models.FloatField(default=0, null=False, blank=False, max_length=10)
     def __str__(self):
-        return str(self.id)
+        return str(self.username)
 
 
-
-
+class Salary(models.Model):
+    class Meta:
+        ordering=["id"]
+    month = models.DateField(null=False, blank=False)  
+    totalDistance = models.FloatField(null=False, blank=False, max_length=10)
+    idDriver = models.ForeignKey(Driver, related_name='Salary', on_delete= models.CASCADE, null=False, blank=False)
+    def __str__(self):
+        return f"Salary of {self.idDriver.username} for {self.month.strftime('%B %Y')}"
     
 #TYPE - name 
 class Type(models.Model):
@@ -184,11 +190,71 @@ class Trip(ItemBase):
         unique_together = ('departure_Station','departure_Time','id_Buses')
         # unique_together = ('id_Buses', 'departure_Time')
         # unique_together =('id','id_Buses')
-
+    POSITION = [
+   ('Gas Hà Nội,21.0285,105.8542', 'Gas Hà Nội'),
+    ('Gas Hà Giang,22.3255,104.4660', 'Gas Hà Giang'),
+    ('Gas Cao Bằng,22.6636,106.2874', 'Gas Cao Bằng'),
+    ('Gas Bắc Kạn,22.1533,105.6126', 'Gas Bắc Kạn'),
+    ('Gas Tuyên Quang,21.8122,105.2176', 'Gas Tuyên Quang'),
+    ('Gas Lạng Sơn,21.8458,106.7610', 'Gas Lạng Sơn'),
+    ('Gas Quảng Ninh,21.0467,107.0832', 'Gas Quảng Ninh'),
+    ('Gas Bắc Giang,21.2726,106.2025', 'Gas Bắc Giang'),
+    ('Gas Bắc Ninh,21.1857,106.0854', 'Gas Bắc Ninh'),
+    ('Gas Hải Dương,20.9388,106.3216', 'Gas Hải Dương'),
+    ('Gas Hải Phòng,20.8449,106.6881', 'Gas Hải Phòng'),
+    ('Gas Hưng Yên,20.5882,106.0664', 'Gas Hưng Yên'),
+    ('Gas Thái Bình,20.4477,106.3586', 'Gas Thái Bình'),
+    ('Gas Hà Nam,20.5737,105.9898', 'Gas Hà Nam'),
+    ('Gas Nam Định,20.4098,106.1630', 'Gas Nam Định'),
+    ('Gas Ninh Bình,20.2530,105.9767', 'Gas Ninh Bình'),
+    ('Gas Thanh Hóa,19.8076,105.7740', 'Gas Thanh Hóa'),
+    ('Gas Nghệ An,19.2613,104.4558', 'Gas Nghệ An'),
+    ('Gas Hà Tĩnh,18.3358,105.9112', 'Gas Hà Tĩnh'),
+    ('Gas Quảng Bình,17.4620,106.1955', 'Gas Quảng Bình'),
+    ('Gas Quảng Trị,16.7425,107.1276', 'Gas Quảng Trị'),
+    ('Gas Thừa Thiên Huế,16.4637,107.5836', 'Gas Thừa Thiên Huế'),
+    ('Gas Đà Nẵng,16.0544,108.2022', 'Gas Đà Nẵng'),
+    ('Gas Quảng Nam,15.5850,108.0751', 'Gas Quảng Nam'),
+    ('Gas Quảng Ngãi,15.1176,108.8404', 'Gas Quảng Ngãi'),
+    ('Gas Bình Định,13.7824,109.2102', 'Gas Bình Định'),
+    ('Gas Phú Yên,13.0900,109.2470', 'Gas Phú Yên'),
+    ('Gas Khánh Hòa,12.2384,109.1967', 'Gas Khánh Hòa'),
+    ('Gas Ninh Thuận,11.5802,108.9351', 'Gas Ninh Thuận'),
+    ('Gas Bình Thuận,10.9284,108.4731', 'Gas Bình Thuận'),
+    ('Gas Đà Lạt,11.6684,108.5402', 'Gas Đà Lạt'),
+    ('Gas Đắk Lắk,12.6780,108.3434', 'Gas Đắk Lắk'),
+    ('Gas Đắk Nông,12.1910,107.5921', 'Gas Đắk Nông'),
+    ('Gas Gia Lai,13.9860,108.4451', 'Gas Gia Lai'),
+    ('Gas Kon Tum,14.3506,108.0001', 'Gas Kon Tum'),
+    ('Gas Hồ Chí Minh,10.8231,106.6297', 'Gas Hồ Chí Minh'),
+    ('Gas Bình Dương,11.0072,106.6512', 'Gas Bình Dương'),
+    ('Gas Bình Phước,11.5020,106.9498', 'Gas Bình Phước'),
+    ('Gas Tây Ninh,11.3478,106.1034', 'Gas Tây Ninh'),
+    ('Gas Long An,10.5580,106.3420', 'Gas Long An'),
+    ('Gas Tiền Giang,10.3619,106.3481', 'Gas Tiền Giang'),
+    ('Gas Bến Tre,10.2430,106.3570', 'Gas Bến Tre'),
+    ('Gas Trà Vinh,9.9274,106.3294', 'Gas Trà Vinh'),
+    ('Gas Vĩnh Long,10.2537,105.9562', 'Gas Vĩnh Long'),
+    ('Gas Cần Thơ,10.0451,105.7460', 'Gas Cần Thơ'),
+    ('Gas Hậu Giang,10.3130,105.3880', 'Gas Hậu Giang'),
+    ('Gas Sóc Trăng,9.5960,105.9800', 'Gas Sóc Trăng'),
+    ('Gas Bạc Liêu,9.2950,105.7117', 'Gas Bạc Liêu'),
+    ('Gas Cà Mau,9.1750,105.1500', 'Gas Cà Mau')
+   ]
     price = models.FloatField(validators=[MinValueValidator(50), MaxValueValidator(200)],default=50)  # Giới hạn giá trị từ 50 đến 200
     distance = models.FloatField(validators=[MinValueValidator(0), MaxValueValidator(3000)],default=0)
-    departure_Station = models.CharField(max_length =100, null = False, blank=False)
-    ending_Station = models.CharField(max_length =100, null = False, blank=False)
+    # departure_Station = models.CharField(max_length =100, null = False, blank=False)
+    departure_Station = models.CharField(
+        max_length=100,
+        choices=POSITION,
+        default='Gas Đà Lạt,11.6684,108.5402' 
+    )
+    # ending_Station = models.CharField(max_length =100, null = False, blank=False)
+    ending_Station = models.CharField(
+        max_length=100,
+        choices=POSITION,
+        default='Gas Cần Thơ,10.0451,105.7460'  
+    )
     departure_Time = models.DateTimeField(null=False, blank=False,default=timezone.now)
     arrival_Time = models.DateTimeField(null=False, blank=False, default=timezone.now)
     hours = models.CharField(max_length=20, blank=True, null=True)  # Trường để lưu giờ
@@ -198,12 +264,45 @@ class Trip(ItemBase):
     id_Route = models.ForeignKey(Route, related_name= "trip",on_delete= models.SET_NULL, null=True)
     id_Buses= models.ForeignKey('Bus', related_name="trip", on_delete= models.SET_NULL, null=True, blank=True, default=None)
     def name(self):
-        return str(self.departure_Station)+ '-'+str(self.ending_Station)
+        departure_name = self.departure_Station.split(',')[0]  # Chỉ lấy phần tên trước dấu phẩy
+        ending_name = self.ending_Station.split(',')[0]  # Chỉ lấy phần tên trước dấu phẩy
+        return f"{departure_name} - {ending_name}"
+    def departure_name(self):
+        departure_name = self.departure_Station.split(',')[0]  # Chỉ lấy phần tên trước dấu phẩy
+        return departure_name
+    def ending_name(self):
+        ending_name = self.ending_Station.split(',')[0]  # Chỉ lấy phần tên trước dấu phẩy
+        return ending_name
+
     def __str__(self) :
-        return str(self.departure_Station)+ '-'+str(self.ending_Station)
-
-
-
+        return f"{self.departure_name()} - {self.ending_name()}"
+    @staticmethod
+    def haversine(lat1, lon1, lat2, lon2):
+        # Chuyển đổi từ độ sang radian
+        lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
+        
+        # Tính sự chênh lệch
+        dlat = lat2 - lat1
+        dlon = lon2 - lon1
+        
+        # Áp dụng công thức Haversine
+        a = math.sin(dlat / 2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2)**2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        # Bán kính của Trái Đất (km)
+        R = 6371
+        
+        # Tính khoảng cách
+        distance = R * c
+        return distance
+    @staticmethod
+    def get_coordinates(station_value):
+        for value, label in Trip.POSITION:
+            if station_value == value:
+                coords = value.split(',')[1:]  # Lấy phần tọa độ từ chuỗi
+                lat = float(coords[0])
+                lon = float(coords[1])
+                return lat, lon
+        return None, None   
     def save(self, *args, **kwargs):
         # if self.id_Buses:
         #     self.total_Seats = self.id_Buses.total_Seats  # Assign Bus's total seats
@@ -217,6 +316,20 @@ class Trip(ItemBase):
             hours, remainder = divmod(time_difference.seconds, 3600)
             minutes, _ = divmod(remainder, 60)
             self.hours = f"{hours:02d}:{minutes:02d}"
+        if self.departure_Station and self.ending_Station:
+            # Lấy tọa độ từ giá trị trong danh sách POSITION
+            dep_lat, dep_lon = self.get_coordinates(self.departure_Station)
+            end_lat, end_lon = self.get_coordinates(self.ending_Station)
+            
+            # print(f"Departure Coordinates: {dep_lat}, {dep_lon}")
+            # print(f"Ending Coordinates: {end_lat}, {end_lon}")
+
+            if dep_lat is not None and dep_lon is not None and end_lat is not None and end_lon is not None:
+                self.distance = self.haversine(dep_lat, dep_lon, end_lat, end_lon)
+                self.distance = round(self.distance, 2)
+                # print(f"Calculated Distance: {self.distance}")
+
+
         super().save(*args, **kwargs)
 
         if self.id_Buses and self.pk:
@@ -232,14 +345,20 @@ class Trip(ItemBase):
                     total_hours = hours + minutes / 60.0
                 else:
                     total_hours = 0
-
-                # # Cập nhật self.hours để lưu dưới dạng chuỗi HH:MM
-                # self.hours = f"{int(total_hours):02d}:{int((total_hours - int(total_hours)) * 60):02d}"
-
                 driver.totalDrivingTime += total_hours
                 driver.totalSalary += self.distance / 50 * 10
                 driver.save()
+                 # Lưu thông tin lương vào bảng Salary
+                month = self.departure_Time.date().replace(day=1)
+                salary, created = Salary.objects.get_or_create(
+                    month=month,
+                    idDriver=driver,
+                    defaults={'totalDistance': self.distance}
+                )
 
+                if not created:
+                    salary.totalDistance += self.distance
+                    salary.save()
         for i in range(1, self.total_Seats + 1):
             unique_ticket_name = f"{trip_name} - Seat {i} - Id Bus {self.id_Buses}"
             try:
@@ -274,7 +393,7 @@ class Bus(ItemBase):
                     limit_choices_to={'bus__isnull': True}  # Chỉ hiển thị Driver chưa có trong Bus
                 )    
         def __str__(self):
-            return str(self.id)
+            return str(self.vehycle_number)
         
 
         def save(self, *args, **kwargs):                
@@ -303,7 +422,8 @@ class SeatNumber(models.Model):
 
     def __str__(self) :
       return str(self.idBus)  + "-" + str(self.seat_number)
-
+    def seatNumber(self):
+        return str(self.seat_number)
 
 
 

@@ -6,7 +6,7 @@
 {% endblock title %}
 
 {% block content_checkout %}
-<link rel= "stylesheet" type="text/css" href="{% static "css/booking.css" %}">
+<link rel= "stylesheet" type="text/css" href="{% static "app/css/booking.css" %}">
 <div class="row py-3" style="width:100%;">
     <div class="col-lg-6">
         <div class="box-element" id="form-wrapper">
@@ -41,7 +41,7 @@
                                     <div class="col-md-4 col-sm-4">
                                         <div class="seat{% if ticket.status %} disabled{% endif %}" data-ticket-id="{{ ticket.id }}">
                                             <img src="{% static 'media/ticket/2024/04/ghe.jpg' %}" alt="seat icon" style="width:50px">
-                                            <span>{{ ticket.idSeatNumber }}</span> <!-- Hiển thị số chỗ ngồi, ví dụ: A01, A02 -->
+                                            <span>{{ ticket.idSeatNumber.seat_number }}</span> <!-- Hiển thị số chỗ ngồi, ví dụ: A01, A02 -->
                                             {% comment %} <input type="hidden" name="selected_tickets" value="{{ ticket.id }}"> {% endcomment %}
                                         </div>
                                     </div>
@@ -52,7 +52,7 @@
                                     <div class="col-md-4 col-sm-4">
                                         <div class="seat {% if ticket.status %}disabled{% endif %}" data-ticket-id="{{ ticket.id }}">
                                             <img src="{% static 'media/ticket/2024/04/ghe.jpg' %}" alt="seat icon" style="width:50px">
-                                            <span>{{ ticket.idSeatNumber }}</span> <!-- Hiển thị số chỗ ngồi, ví dụ: A01, A02 -->
+                                            <span>{{ ticket.idSeatNumber.seat_number }}</span> <!-- Hiển thị số chỗ ngồi, ví dụ: A01, A02 -->
                                         </div>
                                     </div>
                                     {% endif %}
@@ -65,7 +65,7 @@
                                     <div class="col-md-4 col-sm-4 py-2">
                                         <div class="seat{% if ticket.status %} disabled{% endif %}" data-ticket-id="{{ ticket.id }}">
                                             <img src="{% static 'media/ticket/2024/04/ghe.jpg' %}" alt="seat icon" style="width:50px">
-                                            <span>{{ ticket.idSeatNumber }}</span> <!-- Hiển thị số chỗ ngồi, ví dụ: A01, A02 -->
+                                            <span>{{ ticket.idSeatNumber.seat_number }}</span> <!-- Hiển thị số chỗ ngồi, ví dụ: A01, A02 -->
                                             {% comment %} <input type="hidden" name="selected_tickets" value="{{ ticket.id }}"> {% endcomment %}
                                         </div>
                                     </div>
@@ -82,7 +82,7 @@
                                     <div class="col-md-4 col-sm-4">
                                         <div class="seat{% if ticket.status %} disabled{% endif %}" data-ticket-id="{{ ticket.id }}">
                                             <img src="{% static 'media/ticket/2024/04/ghe.jpg' %}" alt="seat icon" style="width:50px">
-                                            <span>{{ ticket.idSeatNumber }}</span> <!-- Hiển thị số chỗ ngồi, ví dụ: A01, A02 -->
+                                            <span>{{ ticket.idSeatNumber.seat_number }}</span> <!-- Hiển thị số chỗ ngồi, ví dụ: A01, A02 -->
                                             {% comment %} <input type="hidden" name="selected_tickets" value="{{ ticket.id }}"> {% endcomment %}
                                         </div>
                                     </div>
@@ -93,7 +93,7 @@
                                     <div class="col-md-4 col-sm-4">
                                         <div class="seat{% if ticket.status %} disabled{% endif %}" data-ticket-id="{{ ticket.id }}">
                                             <img src="{% static 'media/ticket/2024/04/ghe.jpg' %}" alt="seat icon" style="width:50px">
-                                            <span>{{ ticket.idSeatNumber }}</span> <!-- Hiển thị số chỗ ngồi, ví dụ: A01, A02 -->
+                                            <span>{{ ticket.idSeatNumber.seat_number }}</span> <!-- Hiển thị số chỗ ngồi, ví dụ: A01, A02 -->
                                             {% comment %} <input type="hidden" name="selected_tickets" value="{{ ticket.id }}"> {% endcomment %}
                                         </div>
                                     </div>
@@ -107,7 +107,7 @@
                                     <div class="col-md-4 col-sm-4 py-2">
                                         <div class="seat{% if ticket.status %} disabled{% endif %}" data-ticket-id="{{ ticket.id }}">
                                             <img src="{% static 'media/ticket/2024/04/ghe.jpg' %}" alt="seat icon" style="width:50px">
-                                            <span>{{ ticket.idSeatNumber }}</span> <!-- Hiển thị số chỗ ngồi, ví dụ: A01, A02 -->
+                                            <span>{{ ticket.idSeatNumber.seat_number }}</span> <!-- Hiển thị số chỗ ngồi, ví dụ: A01, A02 -->
                                             {% comment %} <input type="hidden" name="selected_tickets" value="{{ ticket.id }}"> {% endcomment %}
                                         </div>
                                     </div>
@@ -137,10 +137,10 @@
             </div>
             <div class="cart-row row">
                 <div class="col-md-6">
-                    <p><strong>Departure Station:</strong> {{ trip.departure_Station }}</p>
+                    <p><strong>Departure Station:</strong> {{ trip.departure_name }}</p>
                 </div>
                 <div class="col-md-6">
-                    <p><strong>Ending Station:</strong> {{ trip.ending_Station }}</p>
+                    <p><strong>Ending Station:</strong> {{ trip.ending_name }}</p>
                 </div>
             </div>
             <div class="cart-row row">
